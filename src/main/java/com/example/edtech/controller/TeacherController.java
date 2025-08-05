@@ -109,6 +109,7 @@ if (courseService.save(course))
 
 //    Adding the lecture to the course
     @PostMapping("/courses/{id}/lecture")
-    public ResponseEntity<?>addLectureToCourse(@PathVariable String id,)
+    public ResponseEntity<?>addLectureToCourse(@PathVariable String id,@)
+// The video transcoding is left meaning converting the video in to the different resolutions
 
 }

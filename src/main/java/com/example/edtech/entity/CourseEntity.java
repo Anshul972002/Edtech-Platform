@@ -1,5 +1,6 @@
 package com.example.edtech.entity;
 
+import com.example.edtech.dto.Lecturedto;
 import lombok.Builder;
 import lombok.Data;
 import org.bson.types.ObjectId;
