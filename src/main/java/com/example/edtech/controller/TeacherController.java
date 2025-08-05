@@ -2,29 +2,113 @@ package com.example.edtech.controller;
 
 import com.example.edtech.dto.Coursedto;
 import com.example.edtech.entity.CourseEntity;
+import com.example.edtech.repository.CourseRepository;
+import com.example.edtech.service.CourseService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Optional;
 
 @Tag(name = "Teacher api",description = "Endpoint for the teacher related api")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/teacher")
 public class TeacherController {
+
+    @Autowired
+    CourseService courseService;
+    @Autowired
+
+    CourseRepository courseRepository;
+
+
+
+
 
     @GetMapping
     public String hello(){
         return "Hello from the teachers";
     }
 
-    @Operation(description = "Create new Course")
+
+//    Courses
+    @Operation(summary = "Create new Course")
     @PostMapping("/courses")
     public ResponseEntity<Map<String,Object>>courses(@Valid @RequestBody Coursedto course){
-
-        return ResponseEntity.ok(Map.of("message","Sucessfull"));
+        if (courseService.isExistsByTitle(course.getTitle())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("message", "Course title already exists"));
+        }
+        if (!course.getThumbnailUrl().startsWith("http") ||!course.getThumbnailUrl().startsWith("https") ) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("message", "Invalid thumbnail URL"));
+        }
+if (courseService.save(course))
+        return ResponseEntity.ok(Map.of("message","Sucessfully creted the course"));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message","Sucessfully creted the course"));
     }
+
+    @Operation( summary =  "Edit the course")
+    @PutMapping("/courses/{id}")
+    public ResponseEntity<?> updateCourse(@PathVariable String id, @RequestBody Coursedto dto) {
+        Optional<CourseEntity> optionalCourse = courseRepository.findById(new ObjectId(id));
+
+        if (optionalCourse.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("message", "Course not found"));
+        }
+
+        CourseEntity course = optionalCourse.get();
+        course.setTitle(dto.getTitle());
+        course.setDescription(dto.getDescription());
+        course.setCategory(dto.getCategory());
+        course.setThumbnailUrl(dto.getThumbnailUrl());
+        course.setUpdatedAt(LocalDateTime.now());
+
+        courseRepository.save(course);
+
+        return ResponseEntity.ok(Map.of("message", "Course updated successfully"));
+    }
+
+    @Operation(
+            summary = "Delete a course by ID",
+            description = "Deletes a course if it exists. Returns 200 if successful, or 404 if not found."
+    )
+    @DeleteMapping("/courses/{id}")
+    public ResponseEntity<Map<String, Object>> deleteCourse(@PathVariable String id) {
+        try {
+            ObjectId courseId = new ObjectId(id);
+
+            boolean exists = courseService.isCourseExistsById(courseId);
+            if (!exists) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("message", "No course found with this ID"));
+            }
+
+            courseService.deleteCourse(id);
+            return ResponseEntity.ok(Map.of("message", "Course deleted successfully"));
+
+        } catch (IllegalArgumentException e) {
+            // ObjectId constructor throws this if id is not a valid 24-char hex string
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "Invalid course ID format"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Error deleting course", "error", e.getMessage()));
+        }
+    }
+
+//    Adding the lecture to the course
+    @PostMapping("/courses/{id}/lecture")
+    public ResponseEntity<?>addLectureToCourse(@PathVariable String id,)
 
 }

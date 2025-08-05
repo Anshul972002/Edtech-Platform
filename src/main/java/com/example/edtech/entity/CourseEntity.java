@@ -15,6 +15,7 @@ import java.util.List;
 public class CourseEntity {
    @Id
    String id;
+
    String title;
 String description;
 String category;
@@ -23,7 +24,7 @@ ObjectId createdBy;
 LocalDateTime createdAt;
 LocalDateTime updatedAt;
 
-//List<Lecture> lectureList;
+List<Lecturedto> lectureId;
 //List<Quiz>quizzes;
 List<ObjectId>enrolledUser;
 boolean isPublished;
