@@ -6,7 +6,9 @@ import com.example.edtech.entity.UserEntity;
 import com.example.edtech.repository.UserRepository;
 import com.example.edtech.util.DtoToEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -47,6 +49,19 @@ catch (Exception exception){
          return true;
       else
          return false;
+   }
+
+   public UserEntity getUser(String email) {
+      UserEntity user = repository.findByEmail(email);
+      if (user!=null)
+         return user;
+      throw new RuntimeException("USesr not found");
+
+   }
+
+   public UserEntity getProfile(){
+      Authentication auth= SecurityContextHolder.getContext().getAuthentication();
+      return getUser(auth.getName());
    }
 
    @Override

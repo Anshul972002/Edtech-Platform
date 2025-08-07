@@ -5,10 +5,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
 import java.util.Map;
 
-@ControllerAdvice
+@RestControllerAdvice
 @io.swagger.v3.oas.annotations.Hidden
 public class GlobalExceptionHandler {
 
@@ -23,13 +26,19 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
-//    @ExceptionHandler(Exception.class)
-//    public ResponseEntity<Map<String, String>> handleOtherExceptions(Exception ex) {
-//        Map<String, String> response = new HashMap<>();
-//        response.put("message", ex.getMessage());
-//        return n
-//
-//        ew ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
-//    }
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Map<String, String>> handleAccessDeniedException(AccessDeniedException ex) {
+        Map<String, String> response = new HashMap<>();
+        response.put("error", ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.FORBIDDEN); // 403 Forbidden
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?>handleIllegalArgumentException(IllegalArgumentException ex){
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message",ex.getMessage()));
+    }
+
+
+
 }
 

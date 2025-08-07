@@ -25,7 +25,7 @@ ObjectId createdBy;
 LocalDateTime createdAt;
 LocalDateTime updatedAt;
 
-List<Lecturedto> lectureId;
+List<ObjectId> lectureId;
 //List<Quiz>quizzes;
 List<ObjectId>enrolledUser;
 boolean isPublished;

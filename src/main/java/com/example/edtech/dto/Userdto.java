@@ -3,7 +3,7 @@ package com.example.edtech.dto;
 import jakarta.validation.constraints.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
-
+@Builder
 @Getter
 @Setter
 @AllArgsConstructor
