@@ -22,7 +22,7 @@ public class UserEntity {
  private String name;
  private String dob;
  private String role;
- private List<String> enrolled;
+ private List<ObjectId> enrolledCourses;
  private String address;
  private String email;
  private String password;

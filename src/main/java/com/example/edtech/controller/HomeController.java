@@ -2,15 +2,21 @@ package com.example.edtech.controller;
 
 
 import com.example.edtech.dto.Userdto;
+import com.example.edtech.entity.CourseEntity;
 import com.example.edtech.entity.UserEntity;
+import com.example.edtech.repository.CourseRepository;
+import com.example.edtech.service.CourseService;
 import com.example.edtech.service.JWTService;
 import com.example.edtech.service.UserService;
 import com.example.edtech.util.LoginUser;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,10 +28,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-@Tag(name = "Registration api",description = "Register yourself")
+@Tag(name = "Home api",description = "Accessible apis without the authentication")
 @RestController
 @RequestMapping("/")
 public class HomeController {
@@ -37,6 +44,8 @@ public class HomeController {
 
     @Autowired
     private JWTService jwtService;
+    @Autowired
+    private CourseService courseService;
 @SecurityRequirement(name = "bearerAuth")
 @Operation(summary = "Simple protected api ")
     @GetMapping("/hello")
@@ -101,5 +110,34 @@ public class HomeController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Login failed"));
         }
     }
+    @Operation(summary = "List of all the published courses")
+    @GetMapping("/courses")
+    public ResponseEntity<List<CourseEntity>>getAllCourses(@Parameter(example = "0") @RequestParam(defaultValue = "0")int page, @Parameter(description = "Number of items per page",example = "10")@RequestParam(defaultValue = "10") int size){
+        List<CourseEntity> content = courseService.getAllCourses(page, size).getContent();
+
+        return ResponseEntity.ok(content);
+    }
+
+
+    @Operation(summary = "Details of particular course")
+    @GetMapping("/courses/{id}")
+    public ResponseEntity<?>getCourse(
+            @Parameter(description = "Id of course to fetch",example = "68918c0fcda0006027078205")
+            @PathVariable String id){
+    try {
+        ObjectId objectId=new ObjectId(id);
+        CourseEntity courseByID = courseService.getCourseByID(objectId);
+        return ResponseEntity.ok(courseByID);
+    }
+    catch (Exception exception){
+        System.out.println(exception.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid id");
+    }
+
+
+
+    }
+
+
 }
 //eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhbnNodWxAMjAwMyIsImlhdCI6MTc1NDI4MDE1NywiZXhwIjoxNzU0MjgwNDU3fQ.NcyZLwSGBXxPOMW5ym-95A0TG8KCje1Y7-d5PmkWdnQ

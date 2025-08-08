@@ -9,13 +9,14 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Builder
 @Data
 @Document(collection = "courses")
 public class CourseEntity {
    @Id
-   String id;
+   ObjectId id;
 
    String title;
 String description;

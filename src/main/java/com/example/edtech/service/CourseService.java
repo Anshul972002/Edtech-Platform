@@ -11,6 +11,9 @@ import com.example.edtech.repository.UserRepository;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -19,6 +22,7 @@ import java.nio.file.AccessDeniedException;
 import java.security.Security;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -95,4 +99,46 @@ public class CourseService {
         courseRepository.save(course);
         return true;
     }
+
+    public Page<CourseEntity> getAllCourses(int page,int size) {
+        List<CourseEntity> courses = courseRepository.findAll();
+        Pageable pageable= PageRequest.of(page,size);
+        return courseRepository.findAll(pageable);
+
+    }
+
+    public CourseEntity getCourseByID(ObjectId id) {
+        CourseEntity course = courseRepository.findById(id).orElseThrow(() -> new RuntimeException("No course is found"));
+return course;
+    }
+//    Pageable pageable = PageRequest.of(page, size);
+//    is used to create a pagination request in Spring Data (both JPA and MongoDB).
+//
+//            🔍 What is Pageable?
+//    Pageable is an interface provided by Spring Data that represents pagination information:
+//
+//    Which page you want to fetch (e.g. page 0, page 1, etc.)
+//
+//    How many items per page you want to retrieve
+//
+//            (Optional) Sorting rules
+//
+//🔍 What is PageRequest.of(page, size)?
+//    PageRequest is a concrete class that implements Pageable.
+//
+//            page: The page number you want to fetch (starts from 0, not 1).
+//
+//    size: The number of items (documents/rows) per page.
+//
+//    Example:
+//
+//    java
+//    Copy code
+//    Pageable pageable = PageRequest.of(1, 10);
+//    This means:
+//            → Get page 1,
+//            → With 10 records per page.
+//
+//            Internally, it will tell Spring Data to skip the first 10 results (i.e., page * size) and fetch the next 10.
+
 }
