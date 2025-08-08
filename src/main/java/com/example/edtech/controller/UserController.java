@@ -4,6 +4,7 @@ import com.example.edtech.dto.Userdto;
 import com.example.edtech.entity.CourseEntity;
 import com.example.edtech.entity.UserEntity;
 import com.example.edtech.repository.UserRepository;
+import com.example.edtech.service.CourseService;
 import com.example.edtech.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -30,6 +31,8 @@ import java.util.stream.Collectors;
 public class UserController {
 @Autowired
     UserService userService;
+@Autowired
+    CourseService courseService;
 @Autowired
     UserRepository userRepository;
 @Autowired
@@ -115,12 +118,29 @@ userRepository.save(user);
     }
 
 //    To enroll in the course
+//    Todo:To add the payment gateway for the paid courses
     @PostMapping("/courses/{id}/enroll")
     public ResponseEntity<?>enrollInCourses(
             @Parameter(description = "Id of course to enroll",example = "68918c0fcda0006027078205")
             @PathVariable String id){
 
+        ObjectId objectId=new ObjectId(id);
+        UserEntity user = userService.getProfile();
+//        TO check if the user is already enrolled and if the course already exist;
+//    Check if it is published
+        CourseEntity courseByID = courseService.getCourseByID(objectId);
+
+        List<ObjectId>enrolledUser=courseByID.getEnrolledUser();
+        if (enrolledUser.contains(user.getId()))
+            throw new IllegalStateException("User already enrolled in this course");
+   if (!courseByID.isPublished())
+       throw new RuntimeException("Course is not published yet");
+   else {
+       return ResponseEntity.ok("Enrolled successfully");
+   }
+
     }
+
 }
 
 

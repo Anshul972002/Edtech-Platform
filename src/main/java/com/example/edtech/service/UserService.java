@@ -63,7 +63,7 @@ catch (Exception exception){
       UserEntity user = repository.findByEmail(email);
       if (user!=null)
          return user;
-      throw new RuntimeException("USesr not found");
+      throw new RuntimeException("User not found");
 
    }
 
