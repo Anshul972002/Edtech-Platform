@@ -1,6 +1,7 @@
 package com.example.edtech.controller;
 
 
+import com.example.edtech.config.UserPrincipal;
 import com.example.edtech.dto.Userdto;
 import com.example.edtech.entity.CourseEntity;
 import com.example.edtech.entity.UserEntity;
@@ -98,12 +99,15 @@ public class HomeController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> loginUser(@Valid @RequestBody LoginUser user) {
         try {
-            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword());
+            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user.getEmail().toLowerCase().trim(), user.getPassword());
             Authentication authenticate = authManager.authenticate(token);
             boolean authenticated = authenticate.isAuthenticated();
-            if (authenticated)
+            if (authenticated){
 //                return ResponseEntity.status(HttpStatus.OK).body(Map.of("token",jwtService.generateToken(user.getEmail())));
-                return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Login sucessfull","token",jwtService.generateToken(user.getEmail())));
+                UserPrincipal userPrincipal=(UserPrincipal) authenticate.getPrincipal();
+                return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Login sucessfull","token",jwtService.generateToken(userPrincipal)));
+            }
+
             else
                 throw new UsernameNotFoundException("Invalid user request!!");
         } catch (Exception e) {

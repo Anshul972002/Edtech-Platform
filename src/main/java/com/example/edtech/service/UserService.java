@@ -1,6 +1,7 @@
 package com.example.edtech.service;
 
 
+import com.example.edtech.config.UserPrincipal;
 import com.example.edtech.dto.Userdto;
 import com.example.edtech.entity.CourseEntity;
 import com.example.edtech.entity.UserEntity;
@@ -73,18 +74,18 @@ catch (Exception exception){
    }
 
 
-
-   @Override
-   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-
-      UserEntity user = repository.findByEmail(username);
-      return new User(user.getEmail(),user.getPassword(), Collections.singletonList(new SimpleGrantedAuthority(user.getRole())));
-   }
-
    public List<CourseEntity> getEnrolledCourses(List<ObjectId>courseIds) {
       List<CourseEntity> courses = courseRepository.findByIdIn(courseIds);
 
 
       return courses;
    }
+   @Override
+   public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
+      UserEntity user = repository.findByEmail(username);
+      return UserPrincipal.create(user);
+   }
+
+
 }
