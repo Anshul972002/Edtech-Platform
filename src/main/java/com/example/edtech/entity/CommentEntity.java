@@ -27,6 +27,24 @@ public class CommentEntity {
 
     @Builder.Default
     private List<String> likedByUserIds = new ArrayList<>();
+    int replyCount;
 
     private LocalDateTime createdAt;
+
+    public static CommentEntity toEntity(ObjectId courseId,ObjectId userId
+            ,String content,ObjectId parentCommentId,List<ObjectId> newAncestors,
+                                         int replyCount
+    ){
+       return CommentEntity.builder()
+                .courseId(courseId)
+                .userId(userId)
+                .content(content)
+                .parentCommentId(parentCommentId)
+                .ancestorIds(newAncestors)
+                .likedByUserIds(new ArrayList<>())
+               .replyCount(replyCount)
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
+
 }

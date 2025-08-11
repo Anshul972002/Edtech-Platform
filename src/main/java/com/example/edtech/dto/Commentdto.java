@@ -16,16 +16,19 @@ public class Commentdto {
     private String courseId;
     private String userId;
     private String content;
-    private List<String> likedByUserIds;
+    private int likeCount;
+    private int replyCount;
     private LocalDateTime createdAt;
 
-    public static Commentdto fromEntity(CommentEntity entity) {
+
+    public static Commentdto fromEntity(CommentEntity entity,) {
         return Commentdto.builder()
                 .id(entity.getId().toHexString())
                 .courseId(entity.getCourseId().toHexString())
                 .userId(entity.getUserId().toHexString())
                 .content(entity.getContent())
-                .likedByUserIds(entity.getLikedByUserIds())
+                .likeCount(entity.getLikedByUserIds().size())
+                .replyCount(entity.getReplyCount())
                 .createdAt(entity.getCreatedAt())
                 .build();
 

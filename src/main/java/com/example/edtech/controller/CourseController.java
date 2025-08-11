@@ -1,10 +1,7 @@
 package com.example.edtech.controller;
 
 import com.example.edtech.config.UserPrincipal;
-import com.example.edtech.dto.CommentTreeDto;
-import com.example.edtech.dto.Commentdto;
-import com.example.edtech.dto.CreateCommentRequest;
-import com.example.edtech.dto.Replydto;
+import com.example.edtech.dto.*;
 import com.example.edtech.service.CommentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,18 +19,22 @@ import java.util.List;
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Course Api")
 @RestController
-@RequestMapping("/courses/{courseId}?comments")
+@RequestMapping("/courses")
 public class CourseController {
     @Autowired
     CommentService commentService;
 
 //Top level comment
+
+
+    GetMapping
+    public ResponseEntity<Coursedto>
+
 @Operation(summary = "To add a comment")
-    @PostMapping
+    @PostMapping("/{courseId}/comments")
     public ResponseEntity<Commentdto>addComment(
-            @Parameter(example = "")
+            @Parameter(example = "68918c0fcda0006027078205")
             @PathVariable String courseId,
-            @Parameter(example = "")
             @RequestBody CreateCommentRequest request,
             @AuthenticationPrincipal UserPrincipal user
 ){
@@ -44,13 +45,13 @@ public class CourseController {
 }
 
     @Operation(summary = "To add reply to the comment")
-    @PostMapping("/{parentCommentId}/reply")
+    @PostMapping("/{courseId}/comments/{parentCommentId}/reply")
     public ResponseEntity<Replydto>addReply(
-            @Parameter(example = "")
+            @Parameter(example = "68918c0fcda0006027078205")
             @PathVariable String courseId,
-            @Parameter(example = "")
-            @PathVariable String parentCommentId,
-            @Parameter(example = "")
+          @Parameter(example = "68918c0fcda0006027078205")
+         @PathVariable String parentCommentId,
+           
             @RequestBody CreateCommentRequest request,
             @AuthenticationPrincipal UserPrincipal user
     ){
@@ -63,11 +64,39 @@ public class CourseController {
     }
 
     @Operation(summary = "To get all the comments with reply")
-    @GetMapping
-    public ResponseEntity<List<CommentTreeDto>> getComments(@PathVariable String courseId) {
-        return ResponseEntity.ok(commentService.getCommentsTree(courseId));
+    @GetMapping("/{courseId}/comments/all")
+    public ResponseEntity<List<CommentTreeDto>> getComments(
+            @Parameter(example = "68918c0fcda0006027078205")
+            @PathVariable String courseId) {
+        return ResponseEntity.ok(commentService.getCommentsTree(new ObjectId(courseId)));
     }
 
+    @Operation(summary = "To get top level comments only")
+    @GetMapping("/{courseId}/comments")
+    public ResponseEntity<List<Commentdto>> getTopComments(
+            @Parameter(example = "68918c0fcda0006027078205")
+            @PathVariable String courseId,
+    @Parameter(example = "0")
+    @RequestParam int page,
+            @Parameter(example = "10")
+            @RequestParam  int size
+    ) {
+        return ResponseEntity.ok(commentService.getTopLevelComments(new ObjectId(courseId),page,size).getContent());
+    }
 
+    @Operation(summary = "To get reply of the paticular comment")
+    @GetMapping("/{courseId}/comments/{parentCommentId}/reply")
+    public ResponseEntity<List<Commentdto>> getReply(
+            @Parameter(example = "68918c0fcda0006027078205")
+            @PathVariable String courseId,
+          @Parameter(example = "68918c0fcda0006027078205")
+         @PathVariable String parentCommentId,
+            @Parameter(example = "0")
+            @RequestParam int page,
+            @Parameter(example = "10")
+            @RequestParam  int size
+    ) {
+        return ResponseEntity.ok(commentService.getReplies(new ObjectId(courseId),new ObjectId(parentCommentId),page,size).getContent());
+    }
 
 }
