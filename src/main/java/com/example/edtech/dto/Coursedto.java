@@ -1,5 +1,6 @@
 package com.example.edtech.dto;
 
+import com.example.edtech.entity.CourseEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
@@ -15,6 +16,7 @@ import java.util.List;
 @Data
 public class Coursedto {
 
+String id;
     @NotBlank(message = "Enter the title")
     @Schema(example = "Java Essentials", description = "Title of the course")
     private String title;
@@ -33,4 +35,14 @@ public class Coursedto {
 
     @Schema(example = "false", description = "Is the course published?")
     private boolean isPublished;
+
+
+    public static Coursedto fromEntity(CourseEntity course){
+         return Coursedto.builder().title(course.getTitle()).description(course.getDescription())
+                 .category(course.getCategory())
+                 .id(course.getId().toHexString())
+                 .thumbnailUrl(course.getThumbnailUrl())
+                 .isPublished(course.isPublished())
+                 .build();
+    }
 }

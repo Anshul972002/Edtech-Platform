@@ -2,6 +2,7 @@ package com.example.edtech.controller;
 
 
 import com.example.edtech.config.UserPrincipal;
+import com.example.edtech.dto.Coursedto;
 import com.example.edtech.dto.Userdto;
 import com.example.edtech.entity.CourseEntity;
 import com.example.edtech.entity.UserEntity;
@@ -114,14 +115,24 @@ public class HomeController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Login failed"));
         }
     }
+
+
+//    Courses API
     @Operation(summary = "List of all the published courses")
     @GetMapping("/courses")
-    public ResponseEntity<List<CourseEntity>>getAllCourses(@Parameter(example = "0") @RequestParam(defaultValue = "0")int page, @Parameter(description = "Number of items per page",example = "10")@RequestParam(defaultValue = "10") int size){
-        List<CourseEntity> content = courseService.getAllCourses(page, size).getContent();
+    public ResponseEntity<List<Coursedto>>getAllActiveCourses(@Parameter(example = "0") @RequestParam(defaultValue = "0")int page, @Parameter(description = "Number of items per page",example = "10")@RequestParam(defaultValue = "10") int size){
+        Page<Coursedto> allCourses = courseService.getAllActiveCourses(page, size);
 
-        return ResponseEntity.ok(content);
+        return ResponseEntity.ok(allCourses.getContent());
     }
 
+    @Operation(summary = "List of all  courses")
+    @GetMapping("/courses")
+    public ResponseEntity<List<Coursedto>>getAllCourses(@Parameter(example = "0") @RequestParam(defaultValue = "0")int page, @Parameter(description = "Number of items per page",example = "10")@RequestParam(defaultValue = "10") int size){
+        Page<Coursedto> allCourses = courseService.getAllCourses(page, size);
+
+        return ResponseEntity.ok(allCourses.getContent());
+    }
 
     @Operation(summary = "Details of particular course")
     @GetMapping("/courses/{id}")
@@ -131,7 +142,8 @@ public class HomeController {
     try {
         ObjectId objectId=new ObjectId(id);
         CourseEntity courseByID = courseService.getCourseByID(objectId);
-        return ResponseEntity.ok(courseByID);
+
+        return ResponseEntity.ok(Coursedto.fromEntity(courseByID));
     }
     catch (Exception exception){
         System.out.println(exception.getMessage());

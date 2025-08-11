@@ -21,7 +21,7 @@ public class Commentdto {
     private LocalDateTime createdAt;
 
 
-    public static Commentdto fromEntity(CommentEntity entity,) {
+    public static Commentdto fromEntity(CommentEntity entity) {
         return Commentdto.builder()
                 .id(entity.getId().toHexString())
                 .courseId(entity.getCourseId().toHexString())

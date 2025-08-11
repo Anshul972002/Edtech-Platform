@@ -77,7 +77,6 @@ catch (Exception exception){
    public List<CourseEntity> getEnrolledCourses(List<ObjectId>courseIds) {
       List<CourseEntity> courses = courseRepository.findByIdIn(courseIds);
 
-
       return courses;
    }
    @Override

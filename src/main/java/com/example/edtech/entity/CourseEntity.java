@@ -17,7 +17,6 @@ import java.util.Objects;
 public class CourseEntity {
    @Id
    ObjectId id;
-
    String title;
 String description;
 String category;

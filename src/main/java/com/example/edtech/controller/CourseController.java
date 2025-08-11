@@ -3,6 +3,7 @@ package com.example.edtech.controller;
 import com.example.edtech.config.UserPrincipal;
 import com.example.edtech.dto.*;
 import com.example.edtech.service.CommentService;
+import com.example.edtech.service.CourseService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -23,12 +24,19 @@ import java.util.List;
 public class CourseController {
     @Autowired
     CommentService commentService;
+    @Autowired
+    CourseService courseService;
 
 //Top level comment
-
-
-    GetMapping
-    public ResponseEntity<Coursedto>
+//@Operation(summary = "Get all courses")
+//    @GetMapping
+//    public ResponseEntity<List<Coursedto>>getAllCourses(
+//            @Parameter(example = "0")
+//            @RequestParam int page,
+//            @Parameter(example = "10")
+//            @RequestParam int size){
+//        return ResponseEntity.ok(courseService.getAllCourses(page,size).getContent());
+//    }
 
 @Operation(summary = "To add a comment")
     @PostMapping("/{courseId}/comments")

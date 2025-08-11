@@ -83,13 +83,7 @@ public class CourseService {
         if (videoUrl == null || (!videoUrl.startsWith("http://") && !videoUrl.startsWith("https://"))) {
             throw new IllegalArgumentException("Invalid video URL. It must start with http or https.");
         }
-        LectureEntity lectureEntity=LectureEntity.builder()
-                .title(lecture.getTitle())
-                .description(lecture.getDescription())
-                .durationInMinutes(lecture.getDurationInMinutes())
-                .videoUrl(lecture.getVideoUrl())
-                .createdAt(LocalDateTime.now())
-                .build();
+        LectureEntity lectureEntity=LectureEntity.toEntity(lecture);
         LectureEntity savedLecture = lectureRepository.save(lectureEntity);
         if (course.getLectureId() == null) {
             course.setLectureId(new ArrayList<>());
@@ -100,16 +94,25 @@ public class CourseService {
         return true;
     }
 
-    public Page<CourseEntity> getAllCourses(int page,int size) {
-        List<CourseEntity> courses = courseRepository.findAll();
+    public Page<Coursedto> getAllActiveCourses(int page,int size) {
         Pageable pageable= PageRequest.of(page,size);
-        return courseRepository.findAll(pageable);
+        Page<CourseEntity> courses = courseRepository.findByIsPublishedTrue(pageable);
+        Page<Coursedto> coursedto = courses.map(Coursedto::fromEntity);
+        return coursedto;
+
+    }
+
+    public Page<Coursedto> getAllCourses(int page,int size) {
+        Pageable pageable= PageRequest.of(page,size);
+        Page<CourseEntity> courses = courseRepository.findAll(pageable);
+        Page<Coursedto> coursedto = courses.map(Coursedto::fromEntity);
+        return coursedto;
 
     }
 
     public CourseEntity getCourseByID(ObjectId id) {
         CourseEntity course = courseRepository.findById(id).orElseThrow(() -> new RuntimeException("No course is found"));
-return course;
+       return course;
     }
 //    Pageable pageable = PageRequest.of(page, size);
 //    is used to create a pagination request in Spring Data (both JPA and MongoDB).

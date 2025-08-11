@@ -1,5 +1,6 @@
 package com.example.edtech.controller;
 
+import com.example.edtech.dto.Coursedto;
 import com.example.edtech.dto.Userdto;
 import com.example.edtech.entity.CourseEntity;
 import com.example.edtech.entity.UserEntity;
@@ -97,7 +98,7 @@ userRepository.save(user);
        }
        else {
            List<ObjectId>courseIds=user.getEnrolledCourses();
-           List<CourseEntity> courses = userService.getEnrolledCourses(user.getEnrolledCourses());
+           List<CourseEntity> courses = userService.getEnrolledCourses(courseIds);
            Set<ObjectId> foundIds = courses.stream()
                    .map(CourseEntity::getId)
                    .collect(Collectors.toSet());
@@ -110,7 +111,7 @@ userRepository.save(user);
 
                    .collect(Collectors.toList());
 
-           if (missingIds==null)
+           if (missingIds.isEmpty())
                return  ResponseEntity.ok(Map.of("courses",courses));
            else
                return  ResponseEntity.ok(Map.of("courses",courses,"missingIds",missingIds));
@@ -140,6 +141,14 @@ userRepository.save(user);
    }
 
     }
+
+
+//    Todo: To publish the course(Teacher Controller)
+//    Todo: To add paid and free courses option(Teacher Controller)
+//    Todo:Add the functionality of the paid and free courses(Any one can see the lectures of free courses but not for the paid courses)
+// Todo: Leave the admin for now
+//    Todo:To delete the courses(Admin)
+//
 
 }
 
