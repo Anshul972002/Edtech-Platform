@@ -1,11 +1,14 @@
 package com.example.edtech.controller;
 
+import com.example.edtech.config.UserPrincipal;
 import com.example.edtech.dto.Coursedto;
+import com.example.edtech.dto.LectureReplydto;
 import com.example.edtech.dto.Userdto;
 import com.example.edtech.entity.CourseEntity;
 import com.example.edtech.entity.UserEntity;
 import com.example.edtech.repository.UserRepository;
 import com.example.edtech.service.CourseService;
+import com.example.edtech.service.LectureService;
 import com.example.edtech.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -38,6 +41,8 @@ public class UserController {
     UserRepository userRepository;
 @Autowired
     PasswordEncoder passwordEncoder;
+@Autowired
+    LectureService lectureService;
     @GetMapping("/hello")
     public String hello(){
     return "Hi";
@@ -140,16 +145,56 @@ userRepository.save(user);
        return ResponseEntity.ok("Enrolled successfully");
    }
 
+
+
+
+    }
+
+
+    @Operation(summary = "To access the course")
+    @GetMapping("/courses/{id}")
+    public ResponseEntity<?> getCourse(
+            @Parameter(description = "Id of course to fetch", example = "68918c0fcda0006027078205")
+            @PathVariable String id) {
+
+        try {
+            ObjectId objectId = new ObjectId(id);
+            CourseEntity courseByID = courseService.getCourseByID(objectId);
+
+            // If free, return lectures
+            if (!courseByID.isPaid()) {
+                List<LectureReplydto> lectures = lectureService.getLectures(objectId);
+                return ResponseEntity.ok(lectures);
+            }
+
+            // For paid courses, check if user is enrolled
+            UserPrincipal principal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            boolean enrolled = courseByID.getEnrolledUser().stream()
+                    .anyMatch(userId -> userId.toHexString().equals(principal.getId()));
+
+            if (!enrolled) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body("You have not enrolled in the course");
+            }
+
+            List<LectureReplydto> lectures = lectureService.getLectures(objectId);
+            return ResponseEntity.ok(lectures);
+
+        } catch (IllegalArgumentException e) { // For invalid ObjectId
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid course ID format");
+        }
     }
 
 
 //    Todo: To publish the course(Teacher Controller) => Done
-//    Todo: To add paid and free courses option(Teacher Controller)
-//    Todo:Add the functionality of the paid and free courses(Any one can see the lectures of free courses but not for the paid courses)
+//    Todo: To add paid and free courses option(Teacher Controller) =>Done
+//    Todo:Add the functionality of the paid and free courses(Any one can see the lectures of free courses but not for the paid courses) =>Done
 //    Todo:To add the progress bar(User Controller)
 //    Todo:To upload the videos to the service
 //    Todo: To upload the profile photos
+//    Todo:To implement the forgot password
 //    Todo:To add the videoStreaming(Advanced)
+//    Todo:To add the live chat (Advanced)
 
 //  Leave the admin for now
 //    Todo:To delete the courses(Admin)

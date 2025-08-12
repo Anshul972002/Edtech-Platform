@@ -136,7 +136,7 @@ public class HomeController {
     }
 
     @Operation(summary = "Details of particular course")
-    @GetMapping("/courses/{id}/detail")
+    @GetMapping("/courses/{id}?details")
     public ResponseEntity<?>getCourse(
             @Parameter(description = "Id of course to fetch",example = "68918c0fcda0006027078205")
             @PathVariable String id){
@@ -154,6 +154,10 @@ public class HomeController {
 
 
     }
+
+
+
+
 
 
 }
