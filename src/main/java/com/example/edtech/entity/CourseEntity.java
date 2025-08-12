@@ -28,5 +28,6 @@ LocalDateTime updatedAt;
 List<ObjectId> lectureId;
 //List<Quiz>quizzes;
 List<ObjectId>enrolledUser;
-boolean isPublished;
+private boolean isPublished;
+private boolean isPaid;
 }

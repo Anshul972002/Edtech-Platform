@@ -16,7 +16,7 @@ import java.util.List;
 @Data
 public class Coursedto {
 
-String id;
+
     @NotBlank(message = "Enter the title")
     @Schema(example = "Java Essentials", description = "Title of the course")
     private String title;
@@ -40,7 +40,7 @@ String id;
     public static Coursedto fromEntity(CourseEntity course){
          return Coursedto.builder().title(course.getTitle()).description(course.getDescription())
                  .category(course.getCategory())
-                 .id(course.getId().toHexString())
+
                  .thumbnailUrl(course.getThumbnailUrl())
                  .isPublished(course.isPublished())
                  .build();

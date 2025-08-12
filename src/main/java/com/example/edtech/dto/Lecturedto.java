@@ -7,11 +7,13 @@ import lombok.Data;
 @Builder
 @Data
 public class Lecturedto {
-
     @NotBlank(message = "Title is required")
     @Size(min = 3, max = 100, message = "Title must be between 3 and 100 characters")
     @Schema(description = "Title of the lecture", example = "Introduction to Java Streams")
     private String title;
+   @NotBlank(message = "Lecture no cannot be empty")
+    @Schema(description = "Lecture no", example = "1")
+    private int lectureNo;
 
     @NotBlank(message = "Description is required")
     @Size(min = 10, max = 500, message = "Description must be between 10 and 500 characters")

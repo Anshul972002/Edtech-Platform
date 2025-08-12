@@ -15,17 +15,20 @@ import java.time.LocalDateTime;
 public class LectureEntity {
 
     @Id
-    ObjectId id;
+  private ObjectId id;
     private String title;
+    private  int lectureNo;
 private String description;
 private String videoUrl;
 private int durationInMinutes;
 private LocalDateTime createdAt;
+private  ObjectId courseID;
 
 public  static LectureEntity toEntity(Lecturedto lecture){
     return LectureEntity.builder()
             .title(lecture.getTitle())
             .description(lecture.getDescription())
+            .lectureNo(lecture.getLectureNo())
             .durationInMinutes(lecture.getDurationInMinutes())
             .videoUrl(lecture.getVideoUrl())
             .createdAt(LocalDateTime.now())

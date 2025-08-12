@@ -1,10 +1,13 @@
 package com.example.edtech.controller;
 
+import com.example.edtech.dto.CourseReplydto;
 import com.example.edtech.dto.Coursedto;
+import com.example.edtech.dto.LectureReplydto;
 import com.example.edtech.dto.Lecturedto;
 import com.example.edtech.entity.CourseEntity;
 import com.example.edtech.repository.CourseRepository;
 import com.example.edtech.service.CourseService;
+import com.example.edtech.service.LectureService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -12,12 +15,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -33,6 +38,9 @@ public class TeacherController {
 
     CourseRepository courseRepository;
 
+    @Autowired
+    LectureService lectureService;
+
 
 
 
@@ -42,8 +50,7 @@ public class TeacherController {
         return "Hello from the teachers";
     }
 
-
-//    Courses
+    //    Courses
     @Operation(summary = "Create new Course")
     @PostMapping("/courses")
     public ResponseEntity<Map<String,Object>>courses(@Valid @RequestBody Coursedto course){
@@ -55,11 +62,56 @@ public class TeacherController {
             return ResponseEntity.badRequest()
                     .body(Map.of("message", "Invalid thumbnail URL"));
         }
-if (courseService.save(course))
-        return ResponseEntity.ok(Map.of("message","Sucessfully creted the course"));
+        if (courseService.save(course))
+            return ResponseEntity.ok(Map.of("message","Sucessfully creted the course"));
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message","Sucessfully creted the course"));
     }
 
+    @Operation(summary = "List of all free course")
+    @GetMapping("/courses?free")
+    public ResponseEntity<List<CourseReplydto>>getFreeCourses(@Parameter(example = "0") @RequestParam(defaultValue = "0")int page, @Parameter(description = "Number of items per page",example = "10")@RequestParam(defaultValue = "10") int size){
+
+        Page<CourseReplydto> allCourses = courseService.getFreeCourses(page, size);
+
+        return ResponseEntity.ok(allCourses.getContent());
+    }
+
+    @Operation(summary = "List of all paid course")
+    @GetMapping("/courses?paid")
+    public ResponseEntity<List<CourseReplydto>>getPaidCourses(@Parameter(example = "0") @RequestParam(defaultValue = "0")int page, @Parameter(description = "Number of items per page",example = "10")@RequestParam(defaultValue = "10") int size){
+        Page<CourseReplydto> allCourses = courseService.getPaidCourses(page, size);
+
+        return ResponseEntity.ok(allCourses.getContent());
+    }
+
+
+
+    @Operation(summary = "To publish the course")
+    @PostMapping("/courses/{id}/publish")
+    public ResponseEntity<?>publishTheCourse( @Parameter(
+            description = "ID of the course to be published",
+            example = "68918c0fcda0006027078205"
+    )
+                                              @PathVariable String id) throws AccessDeniedException {
+        try {
+            ObjectId objectId=new ObjectId(id);
+            CourseEntity course=courseRepository.findById(objectId).orElseThrow(()->new RuntimeException("Course not found"));
+            if(courseService.isValidUserOfCourse(course)){
+                course.setPublished(true);
+                course.setUpdatedAt(LocalDateTime.now());
+                CourseEntity save = courseRepository.save(course);
+                return ResponseEntity.ok(Map.of("message","Course is published")) ;
+            }
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message","Course is published")) ;
+        }
+        catch (Exception exception){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message","Give the valid id")) ;
+        }
+
+
+
+
+    }
     @Operation( summary =  "Edit the course")
     @PutMapping("/courses/{id}")
     public ResponseEntity<?> updateCourse( @Parameter(
@@ -85,6 +137,9 @@ if (courseService.save(course))
 
         return ResponseEntity.ok(Map.of("message", "Course updated successfully"));
     }
+
+
+
 
     @Operation(
             summary = "Delete a course by ID",
@@ -116,9 +171,8 @@ if (courseService.save(course))
                     .body(Map.of("message", "Error deleting course", "error", e.getMessage()));
         }
     }
-
 //    Adding the lecture to the course
-//    First of all we have to deal with the duplicatoin
+//    First of all we have to deal with the duplication
   @Operation(summary = "Add the lecture to the course")
     @PostMapping("/courses/{id}/lecture")
     public ResponseEntity<?>addLectureToCourse(
@@ -154,33 +208,25 @@ catch (IllegalArgumentException e) {
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(Map.of("message", "Error deleting course", "error", e.getMessage()));
 }
-
-
-
     }
-    @Operation(summary = "To publish the course")
-   @PostMapping("/courses/{id}/publish")
-    public ResponseEntity<?>publishTheCourse( @Parameter(
-            description = "ID of the course to be published",
-            example = "68918c0fcda0006027078205"
-    )
-            @PathVariable String id) throws AccessDeniedException {
-try {
-    ObjectId objectId=new ObjectId(id);
-    CourseEntity course=courseRepository.findById(objectId).orElseThrow(()->new RuntimeException("Course not found"));
-    if(courseService.isValidUserOfCourse(course)){
-        course.setPublished(true);
-        course.setUpdatedAt(LocalDateTime.now());
-        CourseEntity save = courseRepository.save(course);
-        return ResponseEntity.ok(Map.of("message","Course is published")) ;
-}
-    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message","Course is published")) ;
-}
-catch (Exception exception){
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message","Give the valid id")) ;
-}
 
+    @Operation(summary = "To get all the lecture of a course")
+    @GetMapping("/courses/{id}/lecture")
+    public ResponseEntity<?>getAllLectureOfCourse(
+            @Parameter(
+                    description = "ID of the course",
+                    example = "68918c0fcda0006027078205"
+            )
+            @PathVariable String id){
+        ObjectId  courseId=new ObjectId(id);
+        CourseEntity courseByID = courseService.getCourseByID(courseId);
+        List<LectureReplydto> lectures = lectureService.getLectures(courseId);
+return ResponseEntity.ok(lectures);
     }
+
+
+
+
 
 
 //    To add the progress tracker

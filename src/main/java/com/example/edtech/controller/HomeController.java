@@ -2,6 +2,7 @@ package com.example.edtech.controller;
 
 
 import com.example.edtech.config.UserPrincipal;
+import com.example.edtech.dto.CourseReplydto;
 import com.example.edtech.dto.Coursedto;
 import com.example.edtech.dto.Userdto;
 import com.example.edtech.entity.CourseEntity;
@@ -120,22 +121,22 @@ public class HomeController {
 //    Courses API
     @Operation(summary = "List of all the published courses")
     @GetMapping("/courses")
-    public ResponseEntity<List<Coursedto>>getAllActiveCourses(@Parameter(example = "0") @RequestParam(defaultValue = "0")int page, @Parameter(description = "Number of items per page",example = "10")@RequestParam(defaultValue = "10") int size){
-        Page<Coursedto> allCourses = courseService.getAllActiveCourses(page, size);
+    public ResponseEntity<List<CourseReplydto>>getAllActiveCourses(@Parameter(example = "0") @RequestParam(defaultValue = "0")int page, @Parameter(description = "Number of items per page",example = "10")@RequestParam(defaultValue = "10") int size){
+        Page<CourseReplydto> allActiveCourses = courseService.getAllActiveCourses(page, size);
 
-        return ResponseEntity.ok(allCourses.getContent());
+        return ResponseEntity.ok(allActiveCourses.getContent());
     }
 
     @Operation(summary = "List of all  courses")
     @GetMapping("/courses")
-    public ResponseEntity<List<Coursedto>>getAllCourses(@Parameter(example = "0") @RequestParam(defaultValue = "0")int page, @Parameter(description = "Number of items per page",example = "10")@RequestParam(defaultValue = "10") int size){
-        Page<Coursedto> allCourses = courseService.getAllCourses(page, size);
+    public ResponseEntity<List<CourseReplydto>>getAllCourses(@Parameter(example = "0") @RequestParam(defaultValue = "0")int page, @Parameter(description = "Number of items per page",example = "10")@RequestParam(defaultValue = "10") int size){
+        Page<CourseReplydto> allCourses = courseService.getAllCourses(page, size);
 
         return ResponseEntity.ok(allCourses.getContent());
     }
 
     @Operation(summary = "Details of particular course")
-    @GetMapping("/courses/{id}")
+    @GetMapping("/courses/{id}/detail")
     public ResponseEntity<?>getCourse(
             @Parameter(description = "Id of course to fetch",example = "68918c0fcda0006027078205")
             @PathVariable String id){

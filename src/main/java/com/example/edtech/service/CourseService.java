@@ -1,5 +1,7 @@
 package com.example.edtech.service;
 
+import com.example.edtech.config.UserPrincipal;
+import com.example.edtech.dto.CourseReplydto;
 import com.example.edtech.dto.Coursedto;
 import com.example.edtech.dto.Lecturedto;
 import com.example.edtech.entity.CourseEntity;
@@ -14,6 +16,7 @@ import org.springframework.boot.context.config.ConfigDataResourceNotFoundExcepti
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.util.Streamable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -25,6 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class CourseService {
@@ -41,10 +46,10 @@ public class CourseService {
         try {
             course.setCreatedAt(LocalDateTime.now());
             course.setUpdatedAt(LocalDateTime.now());
-
+           course.setPublished(false);
+           course.setPaid(false);
             course.setCreatedBy(getCurrentUserId());
             Objects.requireNonNull(courseRepository.save(course));
-
             return true;
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
@@ -64,6 +69,7 @@ public class CourseService {
 
     public boolean deleteCourse(String id) {
         ObjectId objectId = new ObjectId(id);
+        lectureRepository.deleteByCourseId(objectId);
         courseRepository.deleteById(objectId);
         return true;
     }
@@ -84,6 +90,7 @@ public class CourseService {
             throw new IllegalArgumentException("Invalid video URL. It must start with http or https.");
         }
         LectureEntity lectureEntity=LectureEntity.toEntity(lecture);
+        lectureEntity.setCourseID(course.getId());
         LectureEntity savedLecture = lectureRepository.save(lectureEntity);
         if (course.getLectureId() == null) {
             course.setLectureId(new ArrayList<>());
@@ -94,25 +101,48 @@ public class CourseService {
         return true;
     }
 
-    public Page<Coursedto> getAllActiveCourses(int page,int size) {
+    public Page<CourseReplydto> getAllActiveCourses(int page,int size) {
         Pageable pageable= PageRequest.of(page,size);
         Page<CourseEntity> courses = courseRepository.findByIsPublishedTrue(pageable);
-        Page<Coursedto> coursedto = courses.map(Coursedto::fromEntity);
-        return coursedto;
+        Page<CourseReplydto> coursereplydto = courses.map(CourseReplydto::fromEntity);
+        return coursereplydto;
 
     }
 
-    public Page<Coursedto> getAllCourses(int page,int size) {
+    public Page<CourseReplydto> getAllCourses(int page,int size) {
         Pageable pageable= PageRequest.of(page,size);
         Page<CourseEntity> courses = courseRepository.findAll(pageable);
-        Page<Coursedto> coursedto = courses.map(Coursedto::fromEntity);
-        return coursedto;
+        Page<CourseReplydto> coursereplydto = courses.map(CourseReplydto::fromEntity);
+        return coursereplydto;
 
     }
 
     public CourseEntity getCourseByID(ObjectId id) {
         CourseEntity course = courseRepository.findById(id).orElseThrow(() -> new RuntimeException("No course is found"));
        return course;
+    }
+
+    public Page<CourseReplydto> getFreeCourses(int page, int size) {
+        UserPrincipal userPrincipal=(UserPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        String teacherId = userPrincipal.getId();
+
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<CourseEntity> courses = courseRepository.findByCreatedByAndIsPaidFalse(teacherId, pageRequest);
+          return courses.map(CourseReplydto::fromEntity);
+
+    }
+
+
+    public Page<CourseReplydto> getPaidCourses(int page, int size) {
+        UserPrincipal userPrincipal=(UserPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        String teacherId = userPrincipal.getId();
+
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<CourseEntity> courses = courseRepository.findByCreatedByAndIsPaidTrue(teacherId, pageRequest);
+        return courses.map(CourseReplydto::fromEntity);
+
     }
 //    Pageable pageable = PageRequest.of(page, size);
 //    is used to create a pagination request in Spring Data (both JPA and MongoDB).
