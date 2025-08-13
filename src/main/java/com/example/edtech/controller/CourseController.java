@@ -2,30 +2,41 @@ package com.example.edtech.controller;
 
 import com.example.edtech.config.UserPrincipal;
 import com.example.edtech.dto.*;
+import com.example.edtech.entity.CourseEntity;
+import com.example.edtech.entity.CourseProgressEntity;
 import com.example.edtech.service.CommentService;
+import com.example.edtech.service.CourseProgressService;
 import com.example.edtech.service.CourseService;
+import com.example.edtech.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @SecurityRequirement(name = "bearerAuth")
 @Tag(name = "Course Api")
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/courses")
 public class CourseController {
-    @Autowired
-    CommentService commentService;
-    @Autowired
-    CourseService courseService;
+
+   private final CommentService commentService;
+
+   private final CourseService courseService;
+   private final CourseProgressService courseProgressService;
+   private final UserService userService;
 
 //Top level comment
 //@Operation(summary = "Get all courses")
@@ -92,7 +103,7 @@ public class CourseController {
         return ResponseEntity.ok(commentService.getTopLevelComments(new ObjectId(courseId),page,size).getContent());
     }
 
-    @Operation(summary = "To get reply of the paticular comment")
+    @Operation(summary = "To get reply of the particular comment")
     @GetMapping("/{courseId}/comments/{parentCommentId}/reply")
     public ResponseEntity<List<Commentdto>> getReply(
             @Parameter(example = "68918c0fcda0006027078205")
@@ -105,6 +116,45 @@ public class CourseController {
             @RequestParam  int size
     ) {
         return ResponseEntity.ok(commentService.getReplies(new ObjectId(courseId),new ObjectId(parentCommentId),page,size).getContent());
+    }
+
+
+//    To add the CourseProgress apis
+
+    @GetMapping("/{courseId}/progress")
+    public ResponseEntity<?> getProgress(
+            @Parameter(example = "")
+            @PathVariable String courseId) {
+    ObjectId courseId1=new ObjectId(courseId);
+        CourseEntity courseByID = courseService.getCourseByID(courseId1);
+        ObjectId userId = new ObjectId(userService.getId());
+
+        CourseProgressEntity progress = courseProgressService.getProgress(userId, courseId1);
+        double progressPercentage = courseProgressService.getProgressPercentage(courseByID, progress);
+int totalLectures=courseByID.getLectureId().size();
+int completedLecture=progress.getCompletedLectureIds().size();
+Map<String,Object>map=new HashMap<>();
+        map.put("progress",progressPercentage);
+        map.put("totalLecture",totalLectures);
+        map.put("completedLecture",completedLecture);
+        return ResponseEntity.ok(map);
+    }
+
+    @PostMapping("/{courseId}/progress/complete/{lectureId}")
+    public ResponseEntity<?> completeLecture(
+            @Parameter(example = "")
+            @PathVariable String courseId,
+            @Parameter(example = "")
+            @PathVariable String lectureId) {
+        try {
+            ObjectId courseId1 = new ObjectId(courseId);
+            ObjectId lectureId1 = new ObjectId(lectureId);
+            ObjectId userId = new ObjectId(userService.getId());
+            return ResponseEntity.ok(courseProgressService.markLectureAsCompleted(userId, courseId1, lectureId1));
+        }
+        catch (IllegalArgumentException ex){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Provide the correct id");
+        }
     }
 
 }

@@ -87,4 +87,8 @@ catch (Exception exception){
    }
 
 
+   public String  getId() {
+      UserPrincipal principal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+return principal.getId();
+}
 }

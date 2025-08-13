@@ -72,8 +72,7 @@ public BCryptPasswordEncoder passwordEncoder(){
                                 "/docs",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/courses/**"
+                                "/swagger-resources/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

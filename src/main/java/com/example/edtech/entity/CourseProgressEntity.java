@@ -22,7 +22,7 @@ public class CourseProgressEntity {
     private ObjectId id;
 private ObjectId courseId;
 private ObjectId userId;
-private List<LectureEntity>completedLecturesIds;
+private List<ObjectId>completedLectureIds;
 private LocalDateTime lastUpdated;
 }
 
