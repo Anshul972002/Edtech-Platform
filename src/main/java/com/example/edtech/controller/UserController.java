@@ -8,12 +8,15 @@ import com.example.edtech.entity.CourseEntity;
 import com.example.edtech.entity.UserEntity;
 import com.example.edtech.repository.UserRepository;
 import com.example.edtech.service.CourseService;
+import com.example.edtech.service.FileUploadService;
 import com.example.edtech.service.LectureService;
 import com.example.edtech.service.UserService;
+import com.example.edtech.util.CloudinaryResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,18 +35,20 @@ import java.util.stream.Collectors;
 @Tag(name = "User Api",description = "Endpoint for user-related operations")
 @SecurityRequirement(name = "bearerAuth")
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("user")
 public class UserController {
-@Autowired
-    UserService userService;
-@Autowired
-    CourseService courseService;
-@Autowired
-    UserRepository userRepository;
-@Autowired
-    PasswordEncoder passwordEncoder;
-@Autowired
-    LectureService lectureService;
+
+ private  final  UserService userService;
+
+private  final  CourseService courseService;
+
+private  final  UserRepository userRepository;
+
+private  final  PasswordEncoder passwordEncoder;
+
+private  final  LectureService lectureService;
+private final FileUploadService fileUploadService;
     @GetMapping("/hello")
     public String hello(){
     return "Hi";
@@ -61,33 +67,35 @@ public class UserController {
     public ResponseEntity<?> updateUserProfie(  @RequestParam(value = "name",required = false) String name,
                                                       @RequestParam(value = "dob",required = false) String dob,
                                                       @RequestParam(value = "address",required = false) String address,
-                                                      @RequestParam(value = "file",required = false) MultipartFile image) {
+                                                      @RequestParam(value = "file",required = false) MultipartFile image) throws IOException {
 
-        String fileName = image.getOriginalFilename();
+        String fileUrl;
 
 if(name==null && dob==null && address==null && image==null)
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Empty values");
 
         // Create Userdto object manually
-        UserEntity user = userService.getUser(SecurityContextHolder.getContext().getAuthentication().getName());
+        UserEntity user = userService.findUserById(new ObjectId(userService.getId()));
 
         if (name != null && !name.isEmpty() && !user.getName().equals(name)) {
             user.setName(name);
         }
 
-        if (dob != null && !dob.isEmpty() && user.getDob().equals(dob)) {
+        if (dob != null && !dob.isEmpty() && !user.getDob().equals(dob)) {
             user.setDob(dob);
         }
 
-        if (address != null && !address.isEmpty()) {
+        if (address != null && !address.isEmpty() && !user.getAddress().equals(address)) {
             user.setAddress(address);
         }
 
-//        if (image != null && !image.isEmpty()) {
-//            String fileName = image.getOriginalFilename();
-//            // Handle image file saving here if needed
-//            // user.setImagePath(fileName); // optional field
-//        }
+        if (image != null && !image.isEmpty()) {
+            CloudinaryResponse cloudinaryResponse = fileUploadService.uploadFile(image);
+
+            user.setImageUrl(cloudinaryResponse.getUrl());
+            // Handle image file saving here if needed
+            // user.setImagePath(fileName); // optional field
+        }
 userRepository.save(user);
         // return updated user as a response
         return ResponseEntity.ok(user);
@@ -186,13 +194,16 @@ userRepository.save(user);
     }
 
 
+//    To update the profile
+
+
 //    Todo: To publish the course(Teacher Controller) => Done
 //    Todo: To add paid and free courses option(Teacher Controller) =>Done
 //    Todo:Add the functionality of the paid and free courses(Any one can see the lectures of free courses but not for the paid courses) =>Done
 //    Todo:To add the progress bar(User Controller) => Done
-//    Todo:To upload the videos to the service
-//    Todo: To upload the profile photos
-//    Todo:To implement the forgot password
+//    Todo:To upload the videos to the service =>
+//    Todo: To upload the profile photos => Done
+//    Todo:To implement the forgot password =>
 //    Todo:To add the videoStreaming(Advanced)
 //    Todo:To add the live chat (Advanced)
 

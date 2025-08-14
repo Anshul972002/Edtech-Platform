@@ -27,4 +27,5 @@ public class UserEntity {
  private String email;
  private String password;
  private LocalDateTime createdAt;
+ private String imageUrl;
 }

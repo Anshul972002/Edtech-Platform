@@ -36,13 +36,14 @@ private CourseRepository courseRepository;
 
 @Autowired
 private PasswordEncoder passwordEncoder;
-public boolean save(Userdto user){
+public boolean save(Userdto user,String url){
 
 
 try{
    user.setPassword(passwordEncoder.encode(user.getPassword()));
    DtoToEntity util=new DtoToEntity();
    UserEntity entityuser = util.convertUser(user);
+   entityuser.setImageUrl(url);
    entityuser.setRole("ROLE_USER");
    entityuser.setCreatedAt(LocalDateTime.now());
    Objects.requireNonNull(repository.save(entityuser));
@@ -67,6 +68,11 @@ catch (Exception exception){
       throw new RuntimeException("User not found");
 
    }
+
+   public UserEntity findUserById(ObjectId id){
+      UserEntity user = repository.findById(id).orElseThrow(() -> new RuntimeException("User not found"));
+return user;
+}
 
    public UserEntity getProfile(){
       Authentication auth= SecurityContextHolder.getContext().getAuthentication();
