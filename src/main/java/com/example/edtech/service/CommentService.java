@@ -98,9 +98,20 @@ if (allComments.isEmpty())
                 .map(Commentdto::fromEntity);
     }
 
-    /**
-     * 5. Count replies for a given comment
-     */
+    public int  toggleLike(ObjectId commentId1, ObjectId userId) {
+        CommentEntity comment = commentRepository.findById(commentId1).orElseThrow(() -> new RuntimeException("Comment not found"));
+        List<ObjectId> likedByUserIds = comment.getLikedByUserIds();
+    if (likedByUserIds.contains(userId))
+        likedByUserIds.remove(userId);
+    else
+        likedByUserIds.add(userId);
+commentRepository.save(comment);
+    return likedByUserIds.size();
+    }
+
+
+
+
 //    public long countReplies(ObjectId parentId) {
 //        return commentRepository.countByParentCommentId(parentId);
 //    }

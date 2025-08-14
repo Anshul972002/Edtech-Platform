@@ -122,7 +122,7 @@ public class CourseController {
 
 
 //    To add the CourseProgress apis
-
+@Operation(summary = "To get the progress of the course")
     @GetMapping("/{courseId}/progress")
     public ResponseEntity<?> getProgress(
             @Parameter(example = "")
@@ -141,7 +141,7 @@ Map<String,Object>map=new HashMap<>();
         map.put("completedLecture",completedLecture);
         return ResponseEntity.ok(map);
     }
-
+    @Operation(summary = "To change the progress if the lecture is completed")
     @PostMapping("/{courseId}/progress/complete/{lectureId}")
     public ResponseEntity<?> completeLecture(
             @Parameter(example = "")
@@ -153,6 +153,25 @@ Map<String,Object>map=new HashMap<>();
             ObjectId lectureId1 = new ObjectId(lectureId);
             ObjectId userId = new ObjectId(userService.getId());
             return ResponseEntity.ok(courseProgressService.markLectureAsCompleted(userId, courseId1, lectureId1));
+        }
+        catch (IllegalArgumentException ex){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Provide the correct id");
+        }
+    }
+
+    @Operation(summary = "To toggle like on comments")
+    @PostMapping("/comment/{commentId}/toggleLike")
+    public ResponseEntity<?> toggleLike(
+            @Parameter(example = "")
+            @PathVariable String courseId,
+            @Parameter(example = "")
+            @PathVariable String commentId){
+        try {
+            ObjectId courseId1 = new ObjectId(courseId);
+            ObjectId commentId1 = new ObjectId(commentId);
+            ObjectId userId = new ObjectId(userService.getId());
+            int likeCnt = commentService.toggleLike(commentId1, userId);
+            return ResponseEntity.ok(Map.of("Like count",likeCnt));
         }
         catch (IllegalArgumentException ex){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Provide the correct id");

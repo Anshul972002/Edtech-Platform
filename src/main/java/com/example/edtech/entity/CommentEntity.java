@@ -26,8 +26,8 @@ public class CommentEntity {
     private List<ObjectId> ancestorIds;     // For easier thread queries
 
     @Builder.Default
-    private List<String> likedByUserIds = new ArrayList<>();
-    int replyCount;
+    private List<ObjectId> likedByUserIds = new ArrayList<>();
+   private int replyCount;
 
     private LocalDateTime createdAt;
 

@@ -133,6 +133,7 @@ userRepository.save(user);
 
 //    To enroll in the course
 //    Todo:To add the payment gateway for the paid courses
+@Operation(summary = "To enroll in the course")
     @PostMapping("/courses/{id}/enroll")
     public ResponseEntity<?>enrollInCourses(
             @Parameter(description = "Id of course to enroll",example = "68918c0fcda0006027078205")
@@ -152,10 +153,6 @@ userRepository.save(user);
    else {
        return ResponseEntity.ok("Enrolled successfully");
    }
-
-
-
-
     }
 
 
