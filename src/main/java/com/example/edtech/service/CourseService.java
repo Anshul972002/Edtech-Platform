@@ -4,12 +4,15 @@ import com.example.edtech.config.UserPrincipal;
 import com.example.edtech.dto.CourseReplydto;
 import com.example.edtech.dto.Coursedto;
 import com.example.edtech.dto.Lecturedto;
+import com.example.edtech.entity.CommentEntity;
 import com.example.edtech.entity.CourseEntity;
 import com.example.edtech.entity.LectureEntity;
 import com.example.edtech.entity.UserEntity;
+import com.example.edtech.repository.CommentRepository;
 import com.example.edtech.repository.CourseRepository;
 import com.example.edtech.repository.LectureRepository;
 import com.example.edtech.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.config.ConfigDataResourceNotFoundException;
@@ -32,14 +35,16 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
+@RequiredArgsConstructor
 public class CourseService {
+    private  final UserRepository userRepository;
 
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    CourseRepository courseRepository;
-    @Autowired
-    LectureRepository lectureRepository;
+    private  final CourseRepository courseRepository;
+
+    private  final LectureRepository lectureRepository;
+
+    private  final VideoUploadService videoUploadService;
+    private final CommentRepository commentRepository;
 
     public boolean save(Coursedto dto) {
         CourseEntity course = CourseEntity.builder().title(dto.getTitle()).description(dto.getDescription()).category(dto.getCategory()).thumbnailUrl(dto.getThumbnailUrl()).build();
@@ -67,7 +72,30 @@ public class CourseService {
         return courseRepository.existsByTitle(title);
     }
 
-    public boolean deleteCourse(String id) {
+    public boolean deleteCourse(ObjectId id) {
+
+//        Fetch course by id
+
+        CourseEntity courseEntity = getCourseByID(id);
+
+//        Get all lecturesId form the course
+        List<LectureEntity> lectures = lectureRepository.findByCourseId(id);
+//        Delete all the lecture from the cloudinary
+        lectures.stream().map((LectureEntity lecture)->{
+            String publicId = lecture.getVideoUrl().get("id");
+            videoUploadService.deleteFile(publicId);
+
+        });
+        lectureRepository.deleteByCourseId(id);
+//        Get all the courses present in the course id
+        List<CommentEntity> comments = commentRepository.findByCourseId(id);
+
+//        Delete all the comments tied to the course
+    commentRepository.deleteByCourseId(id);
+//        Update the user enrolled list
+List<UserEntity>user=userRepository.findByEnrolledCoursesContains(id);
+
+
         ObjectId objectId = new ObjectId(id);
         lectureRepository.deleteByCourseId(objectId);
         courseRepository.deleteById(objectId);

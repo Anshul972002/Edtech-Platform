@@ -164,7 +164,7 @@ private final VideoUploadService videoUploadService;
                         .body(Map.of("message", "No course found with this ID"));
             }
 
-            courseService.deleteCourse(id);
+            courseService.deleteCourse(courseId);
             return ResponseEntity.ok(Map.of("message", "Course deleted successfully"));
 
         } catch (IllegalArgumentException e) {

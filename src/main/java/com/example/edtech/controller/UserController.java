@@ -205,13 +205,7 @@ userRepository.save(user);
 //    Todo:To add the live chat (Advanced)
 
 //  Leave the admin for now
-//    Todo:To delete the courses(Admin)
-//    Todo: To delete the user and the teachers
-//    Todo: To delete the courses and the lectures of the teacher
-//    Todo:  To lock and unlock the account of user and the teacher
-//    Todo: To delete the comments
-//    Todo: To block the user from the commenting on the course
-//
+
 //
 
 }

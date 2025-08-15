@@ -19,4 +19,6 @@ public interface CommentRepository extends MongoRepository<CommentEntity, Object
 
 
     long countByParentCommentId(ObjectId parentId);
+
+    void deleteByCourseId(ObjectId id);
 }

@@ -169,6 +169,7 @@ Map<String,Object>map=new HashMap<>();
         try {
             ObjectId courseId1 = new ObjectId(courseId);
             ObjectId commentId1 = new ObjectId(commentId);
+
             ObjectId userId = new ObjectId(userService.getId());
             int likeCnt = commentService.toggleLike(commentId1, userId);
             return ResponseEntity.ok(Map.of("Like count", likeCnt));
