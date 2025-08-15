@@ -4,6 +4,8 @@ import jakarta.validation.constraints.*;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.Map;
+
 @Builder
 @Data
 public class Lecturedto {
@@ -20,13 +22,13 @@ public class Lecturedto {
     @Schema(description = "Short description of the lecture content", example = "This lecture covers Java 8 Stream API with examples and best practices.")
     private String description;
 
-    @NotBlank(message = "Video URL is required")
-    @Schema(description = "URL of the lecture video (usually a CDN or cloud storage link)", example = "https://cdn.example.com/videos/java-streams.mp4")
-    private String videoUrl;
+
 
     @Min(value = 1, message = "Duration should be at least 1 minute")
     @Max(value = 300, message = "Duration cannot exceed 300 minutes")
     @Schema(description = "Duration of the lecture in minutes", example = "60")
     private int durationInMinutes;
+
+    private Map<String,String>videoUrl;
 }
 

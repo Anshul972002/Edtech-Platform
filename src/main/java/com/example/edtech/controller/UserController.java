@@ -198,7 +198,7 @@ userRepository.save(user);
 //    Todo: To add paid and free courses option(Teacher Controller) =>Done
 //    Todo:Add the functionality of the paid and free courses(Any one can see the lectures of free courses but not for the paid courses) =>Done
 //    Todo:To add the progress bar(User Controller) => Done
-//    Todo:To upload the videos to the service =>
+//    Todo:To upload the videos to the service => Done
 //    Todo: To upload the profile photos => Done
 //    Todo:To implement the forgot password =>
 //    Todo:To add the videoStreaming(Advanced)

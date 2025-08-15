@@ -8,18 +8,22 @@ import com.example.edtech.entity.CourseEntity;
 import com.example.edtech.repository.CourseRepository;
 import com.example.edtech.service.CourseService;
 import com.example.edtech.service.LectureService;
+import com.example.edtech.service.VideoUploadService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -29,19 +33,20 @@ import java.util.Optional;
 @Tag(name = "Teacher api",description = "Endpoint for the teacher related api")
 @SecurityRequirement(name = "bearerAuth")
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/teacher")
 public class TeacherController {
 
-    @Autowired
-    CourseService courseService;
-    @Autowired
 
-    CourseRepository courseRepository;
-
-    @Autowired
-    LectureService lectureService;
+   private final CourseService courseService;
 
 
+   private final CourseRepository courseRepository;
+
+
+    private final LectureService lectureService;
+
+private final VideoUploadService videoUploadService;
 
 
 
@@ -176,14 +181,25 @@ public class TeacherController {
   @Operation(summary = "Add the lecture to the course")
     @PostMapping("/courses/{id}/lecture")
     public ResponseEntity<?>addLectureToCourse(
-          @Parameter(
-                  description = "ID of the course to add the lecture",
-                  example = "68918c0fcda0006027078205"
-          )
-            @PathVariable String id, @RequestBody Lecturedto lecture){
+          @RequestParam("Course Id") String id,
+          @RequestParam("title") String title,
+          @RequestParam("lectureNo") int lectureNo,
+          @RequestParam("description") String description,
+          @RequestParam("durationInMinutes") int durationInMinutes,
+          @RequestParam("file") MultipartFile video
+
+  ){
 // The video transcoding is left meaning converting the video in to the different resolutions
 try {
     ObjectId objectId=new ObjectId(id);
+    Map<String, String> uploadVideoUrl = videoUploadService.uploadVideoWithResolution(video);
+
+    Lecturedto lecture = Lecturedto.builder().lectureNo(lectureNo).title(title)
+            .description(description)
+            .durationInMinutes(durationInMinutes)
+            .videoUrl(uploadVideoUrl)
+            .build();
+
     CourseEntity course = courseRepository.findById(objectId).orElseThrow(() -> new RuntimeException("Course not found"));
 //    Check if the user is valid user
     boolean validUserOfCourse = courseService.isValidUserOfCourse(course);
@@ -204,9 +220,9 @@ catch (IllegalArgumentException e) {
     // ObjectId constructor throws this if id is not a valid 24-char hex string
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(Map.of("message", "Invalid course ID format"));
-} catch (Exception e) {
+} catch (IOException e) {
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(Map.of("message", "Error deleting course", "error", e.getMessage()));
+            .body(Map.of("message", "Error adding the video"));
 }
     }
 

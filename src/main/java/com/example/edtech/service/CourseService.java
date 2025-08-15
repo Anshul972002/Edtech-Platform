@@ -85,10 +85,8 @@ public class CourseService {
     }
 
     public boolean saveLectureInCourse(Lecturedto lecture,CourseEntity course) {
-        String videoUrl=lecture.getVideoUrl();
-        if (videoUrl == null || (!videoUrl.startsWith("http://") && !videoUrl.startsWith("https://"))) {
-            throw new IllegalArgumentException("Invalid video URL. It must start with http or https.");
-        }
+
+
         LectureEntity lectureEntity=LectureEntity.toEntity(lecture);
         lectureEntity.setCourseID(course.getId());
         LectureEntity savedLecture = lectureRepository.save(lectureEntity);

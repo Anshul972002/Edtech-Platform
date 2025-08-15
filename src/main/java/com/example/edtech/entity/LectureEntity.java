@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Builder
 @Data
@@ -19,7 +20,7 @@ public class LectureEntity {
     private String title;
     private  int lectureNo;
 private String description;
-private String videoUrl;
+private Map<String,String>videoUrl;
 private int durationInMinutes;
 private LocalDateTime createdAt;
 private  ObjectId courseID;

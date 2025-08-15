@@ -165,17 +165,15 @@ Map<String,Object>map=new HashMap<>();
             @Parameter(example = "")
             @PathVariable String courseId,
             @Parameter(example = "")
-            @PathVariable String commentId){
+            @PathVariable String commentId) {
         try {
             ObjectId courseId1 = new ObjectId(courseId);
             ObjectId commentId1 = new ObjectId(commentId);
             ObjectId userId = new ObjectId(userService.getId());
             int likeCnt = commentService.toggleLike(commentId1, userId);
-            return ResponseEntity.ok(Map.of("Like count",likeCnt));
-        }
-        catch (IllegalArgumentException ex){
+            return ResponseEntity.ok(Map.of("Like count", likeCnt));
+        } catch (IllegalArgumentException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Provide the correct id");
         }
     }
-
 }
