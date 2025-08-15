@@ -7,10 +7,7 @@ import com.example.edtech.dto.Userdto;
 import com.example.edtech.entity.CourseEntity;
 import com.example.edtech.entity.UserEntity;
 import com.example.edtech.repository.UserRepository;
-import com.example.edtech.service.CourseService;
-import com.example.edtech.service.FileUploadService;
-import com.example.edtech.service.LectureService;
-import com.example.edtech.service.UserService;
+import com.example.edtech.service.*;
 import com.example.edtech.util.CloudinaryResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -48,6 +45,7 @@ private  final  UserRepository userRepository;
 private  final  PasswordEncoder passwordEncoder;
 
 private  final  LectureService lectureService;
+private final CommentService commentService;
 private final FileUploadService fileUploadService;
     @GetMapping("/hello")
     public String hello(){
@@ -191,7 +189,33 @@ userRepository.save(user);
     }
 
 
-//    To update the profile
+//    To delete the comment
+
+
+    @Operation(summary = "To delete the comment")
+    @GetMapping("/{courseId}/deleteCourse/{commentId}")
+    public ResponseEntity<?>deleteComment(
+            @Parameter(name = "",required = true)
+            @RequestParam String id,
+            @Parameter(name = "",required = true)
+            @RequestParam String cId
+    ){
+        try {
+            ObjectId courseId=new ObjectId(id);
+            ObjectId commentId=new ObjectId(cId);
+            boolean isCourseExists = courseService.isCourseExistsById(courseId);
+            if(!isCourseExists)
+                return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("Course not found");
+
+            boolean isDeleted = commentService.deleteComment(courseId,commentId,false);
+            if(!isDeleted)
+                return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Comment not deleted");
+            return  ResponseEntity.ok().body("Comment deleted successfully");
+        }
+        catch (IllegalArgumentException exception){
+            throw  new RuntimeException("Wrong id format");
+        }
+    }
 
 
 //    Todo: To publish the course(Teacher Controller) => Done

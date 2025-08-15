@@ -11,4 +11,6 @@ public interface LectureRepository extends MongoRepository<LectureEntity, Object
      List<LectureEntity>findByCourseId(ObjectId courseId);
 
      void deleteByCourseId(ObjectId objectId);
+
+
 }

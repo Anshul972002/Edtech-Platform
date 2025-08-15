@@ -28,32 +28,59 @@ public class AdminController {
     private final CourseService courseService;
     private final LectureService lectureService;
     private  final CommentService commentService;
-    private
+
     @Operation(summary = "To delete the course")
 
     @GetMapping("/{courseId}")
     public ResponseEntity<?>deleteCourse(
             @Parameter(name = "",required = true)
-            @RequestParam String Id){
+            @RequestParam String id){
         try {
             ObjectId courseId=new ObjectId(id);
             boolean isCourseExists = courseService.isCourseExistsById(courseId);
           if(!isCourseExists)
               return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("Course not found");
 
-            courseService.deleteCourse(courseId);
-
+            boolean isDeleted = courseService.deleteCourse(courseId);
+if(!isDeleted)
+      return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Course not deleted");
+            return  ResponseEntity.ok().body("Course deleted successfully");
         }
-        catch (IllegalArgumentException){
+        catch (IllegalArgumentException exception){
+            throw  new RuntimeException("Wrong id format");
+        }
+    }
+
+    @Operation(summary = "To delete the comment")
+    @GetMapping("/{courseId}/deleteCourse/{commentId}")
+    public ResponseEntity<?>deleteComment(
+            @Parameter(name = "",required = true)
+            @RequestParam String id,
+     @Parameter(name = "",required = true)
+     @RequestParam String cId
+    ){
+        try {
+            ObjectId courseId=new ObjectId(id);
+            ObjectId commentId=new ObjectId(cId);
+            boolean isCourseExists = courseService.isCourseExistsById(courseId);
+            if(!isCourseExists)
+                return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("Course not found");
+
+            boolean isDeleted = commentService.deleteComment(courseId,commentId,true);
+            if(!isDeleted)
+                return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Comment not deleted");
+            return  ResponseEntity.ok().body("Comment deleted successfully");
+        }
+        catch (IllegalArgumentException exception){
             throw  new RuntimeException("Wrong id format");
         }
     }
 
 }
-//    Todo:To delete the courses(Admin)
+//    Todo:To delete the courses(Admin) =>Done
 //    Todo: To delete the user and the teachers
-//    Todo: To delete the courses and the lectures of the teacher
+//    Todo: To delete the courses and the lectures of the teacher => Done
 //    Todo:  To lock and unlock the account of user and the teacher
-//    Todo: To delete the comments
+//    Todo: To delete the comments => Done
 //    Todo: To block the user from the commenting on the course
 //

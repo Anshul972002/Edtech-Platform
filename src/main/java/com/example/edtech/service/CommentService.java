@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 public class CommentService {
 
     private final CommentRepository commentRepository;
+    private final UserService userService;
 
 
     public Commentdto addComment(ObjectId courseId,ObjectId userId,String content){
@@ -109,6 +110,37 @@ commentRepository.save(comment);
     return likedByUserIds.size();
     }
 
+    public boolean deleteComment(ObjectId courseId, ObjectId commentId, boolean cascade) {
+        // Fetch the comment
+        CommentEntity comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+
+        if (!comment.getCourseId().equals(courseId)) {
+            throw new RuntimeException("Comment does not belong to the specified course");
+        }
+//if admin
+        if (cascade) {
+            // Delete this comment and all replies that have it in their ancestorIds
+            List<CommentEntity> toDelete = commentRepository.findByCourseIdAndAncestorIdsContains(courseId, commentId);
+            toDelete.add(comment); // Include the original comment
+
+            commentRepository.deleteAll(toDelete);
+        }
+//        If student
+        else {
+            // Just delete the comment itself
+            if(!comment.getUserId().equals(userService.getProfile().getId().toHexString()))
+                throw new RuntimeException("Access denied: You are not the owner of this comment.");
+            commentRepository.deleteById(commentId);
+
+
+            if (comment.getParentCommentId() != null) {
+                commentRepository.decrementReplyCount(comment.getParentCommentId());
+            }
+        }
+
+        return true;
+    }
 
 
 

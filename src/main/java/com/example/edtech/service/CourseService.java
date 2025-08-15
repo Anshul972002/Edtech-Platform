@@ -23,6 +23,7 @@ import org.springframework.data.util.Streamable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.AccessDeniedException;
 import java.security.Security;
@@ -72,35 +73,48 @@ public class CourseService {
         return courseRepository.existsByTitle(title);
     }
 
+//    @Transactional // Ensure atomicity if using MongoDB transactions
     public boolean deleteCourse(ObjectId id) {
-
-//        Fetch course by id
-
+        // 1. Fetch course (will throw if not found)
         CourseEntity courseEntity = getCourseByID(id);
 
-//        Get all lecturesId form the course
+        // 2. Get all lectures for this course
         List<LectureEntity> lectures = lectureRepository.findByCourseId(id);
-//        Delete all the lecture from the cloudinary
-        lectures.stream().map((LectureEntity lecture)->{
-            String publicId = lecture.getVideoUrl().get("id");
-            videoUploadService.deleteFile(publicId);
 
+        // 3. Delete videos from Cloudinary safely
+        lectures.forEach(lecture -> {
+            if (lecture.getVideoUrl() != null && lecture.getVideoUrl().containsKey("id")) {
+                String publicId = lecture.getVideoUrl().get("id");
+                if (publicId != null && !publicId.isBlank()) {
+                    videoUploadService.deleteFile(publicId);
+                }
+            }
         });
+
+        // 4. Delete lectures from DB
         lectureRepository.deleteByCourseId(id);
-//        Get all the courses present in the course id
-        List<CommentEntity> comments = commentRepository.findByCourseId(id);
 
-//        Delete all the comments tied to the course
-    commentRepository.deleteByCourseId(id);
-//        Update the user enrolled list
-List<UserEntity>user=userRepository.findByEnrolledCoursesContains(id);
+        // 5. Delete comments linked to course
+        commentRepository.deleteByCourseId(id);
 
 
-        ObjectId objectId = new ObjectId(id);
-        lectureRepository.deleteByCourseId(objectId);
-        courseRepository.deleteById(objectId);
+
+        // 6. Update enrolled users
+        List<UserEntity> users = userRepository.findByEnrolledCoursesContains(id);
+        users.forEach(user -> {
+            List<ObjectId> enrolledCourses = user.getEnrolledCourses();
+            if (enrolledCourses != null && enrolledCourses.contains(id)) {
+                enrolledCourses.remove(id);
+            }
+        });
+        userRepository.saveAll(users);
+
+        // 7. Finally delete the course
+        courseRepository.deleteById(id);
+
         return true;
     }
+
 
     public boolean isCourseExistsById(ObjectId id) {
         return courseRepository.existsById(id);
