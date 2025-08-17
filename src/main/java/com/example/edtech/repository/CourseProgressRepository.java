@@ -9,4 +9,8 @@ import java.util.Optional;
 public interface CourseProgressRepository extends MongoRepository<CourseProgressEntity, ObjectId> {
 
     Optional<CourseProgressEntity> findByUserIdAndCourseId(ObjectId userId, ObjectId courseId);
+
+    CourseProgressEntity findByUserId(ObjectId id);
+
+    void deleteAllByUserId(ObjectId id);
 }

@@ -7,6 +7,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.bson.types.ObjectId;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -18,54 +19,75 @@ import java.util.function.Function;
 
 @Service
 public class JWTService {
-    public  final String SECRET = "5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437";
 
-    public String generateToken(UserPrincipal userPrincipal) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userPrincipal.getId());
-        claims.put("role", userPrincipal.getRole());
+    private  final String SECRET = "5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437"; // ⚠️ put in application.properties / env variable
 
+
+    public String generateAccessToken(UserPrincipal userPrincipal) {
         return Jwts.builder()
-                .setClaims(claims)
-                .setSubject(userPrincipal.getUsername())
+                .setSubject(userPrincipal.getUsername()) // email/username
+                .claim("userId", userPrincipal.getId())
+                .claim("role", userPrincipal.getRole())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 30)) // 30 min
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)) // 15 min
                 .signWith(SignatureAlgorithm.HS256, SECRET)
                 .compact();
     }
 
-    public String extractUserName(String token) {
-        return extractClaim(token, Claims::getSubject);
+
+    public String generateRefreshToken(UserPrincipal userPrincipal) {
+        return Jwts.builder()
+                .setSubject(userPrincipal.getUsername())
+                .claim("userId", userPrincipal.getId())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 7)) // 7 days
+                .signWith(SignatureAlgorithm.HS256, SECRET)
+                .compact();
     }
 
-    public String extractUserId(String token) {
-        return extractClaim(token, claims -> claims.get("userId", String.class));
-    }
-
-    public String extractRole(String token) {
-        return extractClaim(token, claims -> claims.get("role", String.class));
-    }
 
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token);
+            Jwts.parser()
+                    .setSigningKey(SECRET)
+                    .parseClaimsJws(token); // will throw exception if invalid
             return !isTokenExpired(token);
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
 
-    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
+    // ==========================
+    // Extract Claims
+    // ==========================
+    public String extractUserName(String token) {
+        return extractAllClaims(token).getSubject();
     }
 
+    public String extractUserId(String token) {
+        return extractAllClaims(token).get("userId", String.class);
+    }
+
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
+    }
+
+    // ==========================
+    // Helpers
+    // ==========================
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(SECRET).parseClaimsJws(token).getBody();
+        return Jwts.parser()
+                .setSigningKey(SECRET)
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     private boolean isTokenExpired(String token) {
-        return extractClaim(token, Claims::getExpiration).before(new Date());
+        Date expiration = extractAllClaims(token).getExpiration();
+        return expiration.before(new Date());
     }
+
+
 }
+
 

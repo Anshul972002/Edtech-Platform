@@ -7,12 +7,15 @@ import com.example.edtech.entity.CourseEntity;
 import com.example.edtech.entity.UserEntity;
 import com.example.edtech.repository.CourseRepository;
 import com.example.edtech.repository.UserRepository;
+import com.example.edtech.util.CloudinaryResponse;
 import com.example.edtech.util.DtoToEntity;
+import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.token.TokenService;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,29 +24,33 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserService implements UserDetailsService {
-@Autowired
-   private UserRepository repository;
-@Autowired
-private CourseRepository courseRepository;
+   private final UserRepository repository;
 
-@Autowired
-private PasswordEncoder passwordEncoder;
-public boolean save(Userdto user,String url){
+private final CourseRepository courseRepository;
+
+private final CourseService courseService;
+private final PasswordEncoder passwordEncoder;
+private final RefreshTokenService refreshTokenService;
+private final FileUploadService fileUploadService;
+private final CommentService commentService;
+private final CourseProgressService courseProgressService;
+
+
+public boolean save(Userdto user, CloudinaryResponse response){
 
 
 try{
+   Map<String, String> profile = Map.of("id", response.getId(), "url", response.getUrl());
    user.setPassword(passwordEncoder.encode(user.getPassword()));
    DtoToEntity util=new DtoToEntity();
    UserEntity entityuser = util.convertUser(user);
-   entityuser.setImageUrl(url);
+   entityuser.setProfile(profile);
    entityuser.setRole("ROLE_USER");
    entityuser.setCreatedAt(LocalDateTime.now());
    Objects.requireNonNull(repository.save(entityuser));
@@ -97,4 +104,64 @@ return user;
       UserPrincipal principal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 return principal.getId();
 }
+
+   public boolean deleteUser(UserEntity user) {
+      try {
+         // 1. Delete Cloudinary profile image (if any)
+         if (user.getProfile() != null) {
+            fileUploadService.deleteFile(user.getProfile().get("id"));
+         }
+
+         // 2. Remove from enrolled courses
+         courseService.deleteUser(user.getId());
+
+         // 3. Invalidate tokens
+         refreshTokenService.invalidateToken(user.getId());
+
+         // 4. Handle comments (e.g., anonymize)
+         commentService.anonymizeUserId(user.getId());
+
+         // 5. Delete progress
+         courseProgressService.deleteProgress(user.getId());
+
+         // 6. Finally delete the user itself
+         repository.delete(user);
+
+         return true;  // success
+      } catch (Exception e) {
+         throw new RuntimeException("Failed to delete user with id"+user.getId());
+
+      }
+   }
+
+
+
+   public void lockUser(ObjectId userId) {
+      UserEntity user = repository.findById(userId)
+              .orElseThrow(() -> new RuntimeException("User not found"));
+      user.setAccountLocked(true);
+      repository.save(user);
+   }
+
+   public void unlockUser(ObjectId userId) {
+      UserEntity user = repository.findById(userId)
+              .orElseThrow(() -> new RuntimeException("User not found"));
+      user.setAccountLocked(false);
+      repository.save(user);
+   }
+
+   public void disableUser(ObjectId userId) {
+      UserEntity user = repository.findById(userId)
+              .orElseThrow(() -> new RuntimeException("User not found"));
+      user.setEnabled(false);
+      repository.save(user);
+   }
+
+   public void enableUser(ObjectId userId) {
+      UserEntity user = repository.findById(userId)
+              .orElseThrow(() -> new RuntimeException("User not found"));
+      user.setEnabled(true);
+      repository.save(user);
+   }
+
 }

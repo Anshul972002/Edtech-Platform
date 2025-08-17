@@ -20,14 +20,19 @@ public class UserPrincipal implements UserDetails {
     private String password;
     private String role;  // Changed to String to match UserEntity
     private Collection<? extends GrantedAuthority> authorities;
+    private boolean accountLocked;
+    private boolean enabled;
 
 //     Constructor that matches the create method call
-    public UserPrincipal(String id, String email, String password, String role, Collection<? extends GrantedAuthority> authorities) {
+    public UserPrincipal(String id, String email, String password, String role, Collection<? extends GrantedAuthority> authorities
+    ,boolean accountLocked,boolean enabled) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.role = role;
         this.authorities = authorities;
+        this.accountLocked=accountLocked;
+        this.enabled=enabled;
     }
 
     public String getId() {
@@ -84,7 +89,9 @@ public class UserPrincipal implements UserDetails {
                 user.getEmail(),
                 user.getPassword(),
                 user.getRole(),
-                authorities
+                authorities,
+                user.isAccountLocked(),
+                user.isEnabled()
         );
     }
 }

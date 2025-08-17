@@ -142,6 +142,13 @@ commentRepository.save(comment);
         return true;
     }
 
+    public void anonymizeUserId(ObjectId id) {
+        CommentEntity comment=commentRepository.findByUserId(id);
+        comment.setIsDeleted(true);
+        commentRepository.save(comment);
+//        userId
+
+    }
 
 
 //    public long countReplies(ObjectId parentId) {

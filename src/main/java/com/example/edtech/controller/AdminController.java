@@ -3,9 +3,11 @@ package com.example.edtech.controller;
 
 import com.example.edtech.entity.CommentEntity;
 import com.example.edtech.entity.CourseEntity;
+import com.example.edtech.entity.UserEntity;
 import com.example.edtech.service.CommentService;
 import com.example.edtech.service.CourseService;
 import com.example.edtech.service.LectureService;
+import com.example.edtech.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -28,10 +30,11 @@ public class AdminController {
     private final CourseService courseService;
     private final LectureService lectureService;
     private  final CommentService commentService;
+    private final UserService userService;
 
     @Operation(summary = "To delete the course")
 
-    @GetMapping("/{courseId}")
+    @GetMapping("/course/{courseId}")
     public ResponseEntity<?>deleteCourse(
             @Parameter(name = "",required = true)
             @RequestParam String id){
@@ -52,7 +55,7 @@ if(!isDeleted)
     }
 
     @Operation(summary = "To delete the comment")
-    @GetMapping("/{courseId}/deleteCourse/{commentId}")
+    @GetMapping("/{courseId}/deleteComment/{commentId}")
     public ResponseEntity<?>deleteComment(
             @Parameter(name = "",required = true)
             @RequestParam String id,
@@ -76,11 +79,64 @@ if(!isDeleted)
         }
     }
 
+
+
+
+    @Operation(summary = "To delete the user")
+    @GetMapping("user/delete/{userId}")
+    public ResponseEntity<?>deleteUser(
+            @Parameter(name = "",required = true)
+            @RequestParam String id
+    ){
+        try {
+            ObjectId userId=new ObjectId(id);
+
+            UserEntity user =userService.findUserById(userId);
+
+            if(user==null)
+                return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+
+            boolean isDeleted =userService.deleteUser(user);
+            if(!isDeleted)
+                return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Comment not deleted");
+            return  ResponseEntity.ok().body("Comment deleted successfully");
+        }
+        catch (IllegalArgumentException exception){
+            throw  new RuntimeException("Wrong id format");
+        }
+    }
+
+    @Operation(summary = "To lock the account")
+    @GetMapping("user/lock/{userId}")
+    public ResponseEntity<?>lockUser(
+            @Parameter(name = "",required = true)
+            @RequestParam String id
+    ){
+        try {
+            ObjectId userId=new ObjectId(id);
+
+            UserEntity user =userService.findUserById(userId);
+
+            if(user==null)
+                return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+
+            boolean isDeleted =userService.deleteUser(user);
+            if(!isDeleted)
+                return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Comment not deleted");
+            return  ResponseEntity.ok().body("Comment deleted successfully");
+        }
+        catch (IllegalArgumentException exception){
+            throw  new RuntimeException("Wrong id format");
+        }
+    }
+
+
 }
 //    Todo:To delete the courses(Admin) =>Done
-//    Todo: To delete the user and the teachers
+//    Todo: To delete the user and the teachers =>Done
 //    Todo: To delete the courses and the lectures of the teacher => Done
 //    Todo:  To lock and unlock the account of user and the teacher
 //    Todo: To delete the comments => Done
 //    Todo: To block the user from the commenting on the course
 //
+

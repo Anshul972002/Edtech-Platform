@@ -5,14 +5,14 @@ import com.cloudinary.Cloudinary;
 import com.example.edtech.config.UserPrincipal;
 import com.example.edtech.dto.CourseReplydto;
 import com.example.edtech.dto.Coursedto;
+import com.example.edtech.dto.RefreshRequest;
 import com.example.edtech.dto.Userdto;
 import com.example.edtech.entity.CourseEntity;
+import com.example.edtech.entity.RefreshToken;
 import com.example.edtech.entity.UserEntity;
 import com.example.edtech.repository.CourseRepository;
-import com.example.edtech.service.CourseService;
-import com.example.edtech.service.FileUploadService;
-import com.example.edtech.service.JWTService;
-import com.example.edtech.service.UserService;
+import com.example.edtech.repository.RefreshTokenRepository;
+import com.example.edtech.service.*;
 import com.example.edtech.util.CloudinaryResponse;
 import com.example.edtech.util.LoginUser;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,12 +30,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -54,6 +59,8 @@ public class HomeController {
     private final CourseService courseService;
     private final FileUploadService fileUploadService;
     private final Cloudinary cloudinary;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final RefreshTokenService refreshTokenService;
 @SecurityRequirement(name = "bearerAuth")
 @Operation(summary = "Simple protected api ")
     @GetMapping("/hello")
@@ -95,7 +102,7 @@ public class HomeController {
             String confirmpassword1=user.getConfirmpassword();
             if (userService.findemailexist(user.getEmail()))
                 return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(Map.of("message", "User already exist"));
-            boolean save = userService.save(user,cloudinaryResponse.getUrl());
+            boolean save = userService.save(user,cloudinaryResponse);
             // your logic here
             if(!save){
                 fileUploadService.deleteFile(cloudinaryResponse.getId());
@@ -125,7 +132,20 @@ public class HomeController {
             if (authenticated){
 //                return ResponseEntity.status(HttpStatus.OK).body(Map.of("token",jwtService.generateToken(user.getEmail())));
                 UserPrincipal userPrincipal=(UserPrincipal) authenticate.getPrincipal();
-                return ResponseEntity.status(HttpStatus.OK).body(Map.of("message", "Login sucessfull","token",jwtService.generateToken(userPrincipal)));
+                String accessToken = jwtService.generateAccessToken(userPrincipal);
+                String refreshToken = jwtService.generateRefreshToken(userPrincipal);
+                String id = userPrincipal.getId();
+                boolean save = refreshTokenService.save(new ObjectId(id), refreshToken);
+              if (!save)
+                  return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                          "message", "Something went wrong.."
+
+                  ));
+                return ResponseEntity.ok(Map.of(
+                        "message", "Login successful",
+                        "accessToken", accessToken,
+                        "refreshToken", refreshToken
+                ));
             }
 
             else
@@ -135,8 +155,33 @@ public class HomeController {
         }
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestBody RefreshRequest request) {
+        String refreshToken = request.getRefreshToken();
 
-//    Courses API
+        RefreshToken stored = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new RuntimeException("Invalid refresh token"));
+
+        if (stored.getExpiryDate().isBefore(Instant.now())) {
+            throw new RuntimeException("Refresh token expired");
+        }
+
+        String username = jwtService.extractUserName(refreshToken);
+        String userId = jwtService.extractUserId(refreshToken);
+        UserEntity userById = userService.findUserById(new ObjectId(userId));
+        String role=userById.getRole();
+        List<GrantedAuthority>authorities= Collections.singletonList(new SimpleGrantedAuthority(role));
+
+        // issue new access token
+UserPrincipal userPrincipal=new UserPrincipal(userId,username,null,role,authorities);
+        String newAccessToken = jwtService.generateAccessToken(userPrincipal);
+
+        return ResponseEntity.ok(Map.of("accessToken",newAccessToken,"refreshToken", refreshToken));
+    }
+
+
+
+    //    Courses API
     @Operation(summary = "List of all the published courses")
     @GetMapping("/courses")
     public ResponseEntity<List<CourseReplydto>>getAllActiveCourses(@Parameter(example = "0") @RequestParam(defaultValue = "0")int page, @Parameter(description = "Number of items per page",example = "10")@RequestParam(defaultValue = "10") int size){
@@ -168,8 +213,6 @@ public class HomeController {
         System.out.println(exception.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid id");
     }
-
-
 
     }
 

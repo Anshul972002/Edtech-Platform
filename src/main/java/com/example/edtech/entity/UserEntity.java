@@ -10,9 +10,11 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+
 @Builder
-@Getter
 @Setter
+@Getter
 @AllArgsConstructor
 @NoArgsConstructor
 @Document
@@ -27,5 +29,7 @@ public class UserEntity {
  private String email;
  private String password;
  private LocalDateTime createdAt;
- private String imageUrl;
+ private Map<String,String > profile;
+ private boolean accountLocked=false;
+ private boolean enabled=true;
 }

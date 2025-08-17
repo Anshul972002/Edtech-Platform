@@ -184,6 +184,14 @@ public class CourseService {
         return courses.map(CourseReplydto::fromEntity);
 
     }
+
+    public void deleteUser(ObjectId userId) {
+        List<CourseEntity> courses = courseRepository.findByEnrolledUserContains(userId);
+
+        courses.forEach(course -> course.getEnrolledUser().remove(userId));
+
+        courseRepository.saveAll(courses);
+    }
 //    Pageable pageable = PageRequest.of(page, size);
 //    is used to create a pagination request in Spring Data (both JPA and MongoDB).
 //

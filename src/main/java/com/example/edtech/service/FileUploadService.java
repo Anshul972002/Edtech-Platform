@@ -59,6 +59,7 @@ public class FileUploadService {
     public void deleteFile(String id) {
         try {
             cloudinary.uploader().destroy(id, ObjectUtils.emptyMap());
+
         } catch (IOException e) {
             e.printStackTrace();
         }

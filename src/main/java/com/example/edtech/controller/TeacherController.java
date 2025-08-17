@@ -213,7 +213,7 @@ try {
                 .body(Map.of("message", "Lecture is not saved"));
 
     return ResponseEntity.status(HttpStatus.OK)
-            .body(Map.of("message", "Lecture is added to the course"));
+            .body(uploadVideoUrl);
 
 }
 catch (IllegalArgumentException e) {

@@ -1,12 +1,14 @@
 package com.example.edtech.filter;
 
 import com.example.edtech.config.UserPrincipal;
+import com.example.edtech.entity.UserEntity;
 import com.example.edtech.service.JWTService;
 import com.example.edtech.service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -48,13 +50,17 @@ public class RouteFilter extends OncePerRequestFilter {
                 userId = jwtService.extractUserId(token);     // Extract from JWT
                 role = jwtService.extractRole(token);         // Extract from JWT
 
+                UserEntity userById = userService.findUserById(new ObjectId(userId));
+
+
+
                 // Create UserPrincipal from JWT data - NO database call
                 List<GrantedAuthority> authorities = Collections.singletonList(
                         new SimpleGrantedAuthority("ROLE_" + role)
                 );
 
                 UserPrincipal userPrincipal = new UserPrincipal(
-                        userId, username, null, role, authorities
+                        userId, username, null, role, authorities,
                 );
 
                 UsernamePasswordAuthenticationToken authToken =

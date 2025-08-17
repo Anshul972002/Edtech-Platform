@@ -20,4 +20,6 @@ public interface CourseRepository extends MongoRepository<CourseEntity, ObjectId
 
     Page<CourseEntity> findByCreatedByAndIsPaidFalse(String teacherId, PageRequest pageRequest);
     Page<CourseEntity> findByCreatedByAndIsPaidTrue(String teacherId, PageRequest pageRequest);
+
+    List<CourseEntity> findByEnrolledUserContains(ObjectId userId);
 }

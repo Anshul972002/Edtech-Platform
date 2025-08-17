@@ -31,6 +31,8 @@ public interface CommentRepository extends MongoRepository<CommentEntity, Object
 
 
     List<CommentEntity> findByCourseIdAndAncestorIdsContains(ObjectId courseId, ObjectId commentId);
+
+    CommentEntity findByUserId(ObjectId id);
 }
 
 //Alright — let’s unpack those three annotations one by one.

@@ -10,6 +10,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@Setter
+@Getter
+
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -30,6 +33,16 @@ public class CommentEntity {
    private int replyCount;
 
     private LocalDateTime createdAt;
+    private boolean isDeleted;
+    public boolean getIsDeleted(){
+        return isDeleted;
+    }
+
+    public void setIsDeleted(boolean isDeleted){
+        this.isDeleted=isDeleted;
+    }
+
+
 
     public static CommentEntity toEntity(ObjectId courseId,ObjectId userId
             ,String content,ObjectId parentCommentId,List<ObjectId> newAncestors,
@@ -44,6 +57,7 @@ public class CommentEntity {
                 .likedByUserIds(new ArrayList<>())
                .replyCount(replyCount)
                 .createdAt(LocalDateTime.now())
+               .isDeleted(false)
                 .build();
     }
 

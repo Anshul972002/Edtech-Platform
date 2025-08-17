@@ -70,4 +70,8 @@ return          progressRepository.findByUserIdAndCourseId(userId, courseId).orE
        return CourseProgressdto.fromEntity(progress);
 
     }
+
+    public void deleteProgress(ObjectId id) {
+        progressRepository.deleteAllByUserId(id);
+    }
 }
