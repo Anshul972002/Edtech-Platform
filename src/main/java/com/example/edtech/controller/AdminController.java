@@ -201,7 +201,7 @@ if(!isDeleted)
 
 
     @Operation(summary = "To block the user from comment")
-    @GetMapping("{courseId}/block/{userId}")
+    @PutMapping("{courseId}/block/{userId}")
     public ResponseEntity<?>blockUserFromComment(
             @Parameter(name = "",required = true)
             @PathVariable String id1,
@@ -217,6 +217,8 @@ if(!isDeleted)
                 return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
             ObjectId courseId=new ObjectId(id1);
             CourseEntity course = courseService.getCourseByID(courseId);
+            if(course==null)
+                return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("Course not found");
             boolean isSuccessfull =blockedCommentService.blockUserFromComment(course,user);
             if(!isSuccessfull)
                 return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to  block the user from commenting.");
@@ -228,6 +230,34 @@ if(!isDeleted)
     }
 
 
+    @Operation(summary = "To unblock the user from comment")
+    @PutMapping("{courseId}/unblock/{userId}")
+    public ResponseEntity<?>unblockUserFromComment(
+            @Parameter(name = "",required = true)
+            @PathVariable String id1,
+            @Parameter(name = "",required = true)
+            @PathVariable String id
+
+    ){
+        try {
+            ObjectId userId=new ObjectId(id);
+
+            UserEntity user =userService.findUserById(userId);
+            if(user==null)
+                return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            ObjectId courseId=new ObjectId(id1);
+            CourseEntity course = courseService.getCourseByID(courseId);
+            if(course==null)
+                return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("Course not found");
+            boolean isSuccessfull =blockedCommentService.blockUserFromComment(course,user);
+            if(!isSuccessfull)
+                return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to  block the user from commenting.");
+            return  ResponseEntity.ok().body(" User is blocked from commenting on this course");
+        }
+        catch (IllegalArgumentException exception){
+            throw  new RuntimeException("Wrong id format");
+        }
+    }
 }
 //    Todo:To delete the courses(Admin) =>Done
 //    Todo: To delete the user and the teachers =>Done

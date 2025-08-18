@@ -33,6 +33,7 @@ public class BlockedCommentService {
             ObjectId courseId=course.getId();
             ObjectId userId=user.getId();
            blockedCommentRepository.deleteByCourseIdAndUserId(courseId,userId);
+           return true;
         }
         catch (Exception e){
             System.out.println(e.getMessage());

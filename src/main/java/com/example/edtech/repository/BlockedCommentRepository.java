@@ -6,4 +6,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 public interface BlockedCommentRepository extends MongoRepository<BlockedCommentEntity, ObjectId> {
     boolean existsByUserId(ObjectId userId);
+
+    void deleteByCourseIdAndUserId(ObjectId courseId, ObjectId userId);
 }
