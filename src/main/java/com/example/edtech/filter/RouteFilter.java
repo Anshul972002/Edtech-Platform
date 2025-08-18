@@ -60,7 +60,7 @@ public class RouteFilter extends OncePerRequestFilter {
                 );
 
                 UserPrincipal userPrincipal = new UserPrincipal(
-                        userId, username, null, role, authorities,
+                        userId, username, null, role, authorities,userById.isAccountLocked(),userById.isEnabled()
                 );
 
                 UsernamePasswordAuthenticationToken authToken =

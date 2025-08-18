@@ -136,32 +136,67 @@ return principal.getId();
 
 
 
-   public void lockUser(ObjectId userId) {
+   public boolean lockUser(ObjectId userId) {
+   try
+   {
       UserEntity user = repository.findById(userId)
               .orElseThrow(() -> new RuntimeException("User not found"));
       user.setAccountLocked(true);
       repository.save(user);
+      return true;
+   }
+   catch (Exception e){
+      System.out.println(e.getMessage());
+      return  false;
    }
 
-   public void unlockUser(ObjectId userId) {
-      UserEntity user = repository.findById(userId)
-              .orElseThrow(() -> new RuntimeException("User not found"));
-      user.setAccountLocked(false);
-      repository.save(user);
+
    }
 
-   public void disableUser(ObjectId userId) {
+   public boolean unlockUser(ObjectId userId) {
+     try {
+        UserEntity user = repository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setAccountLocked(false);
+        repository.save(user);
+        return false;
+     }
+
+       catch (Exception e){
+         System.out.println(e.getMessage());
+         return  false;
+      }
+   }
+
+   public boolean disableUser(ObjectId userId) {
+   try {
       UserEntity user = repository.findById(userId)
               .orElseThrow(() -> new RuntimeException("User not found"));
       user.setEnabled(false);
       repository.save(user);
+      return  true;
    }
 
-   public void enableUser(ObjectId userId) {
+       catch (Exception e){
+         System.out.println(e.getMessage());
+         return  false;
+      }
+   }
+
+   public boolean enableUser(ObjectId userId) {
+   try {
       UserEntity user = repository.findById(userId)
               .orElseThrow(() -> new RuntimeException("User not found"));
       user.setEnabled(true);
       repository.save(user);
+      return true;
+   }
+
+
+        catch (Exception e){
+         System.out.println(e.getMessage());
+         return  false;
+      }
    }
 
 }

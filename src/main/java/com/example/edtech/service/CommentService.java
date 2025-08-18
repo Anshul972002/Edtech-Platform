@@ -3,7 +3,9 @@ package com.example.edtech.service;
 import com.example.edtech.dto.CommentTreeDto;
 import com.example.edtech.dto.Commentdto;
 import com.example.edtech.dto.Replydto;
+import com.example.edtech.entity.BlockedCommentEntity;
 import com.example.edtech.entity.CommentEntity;
+import com.example.edtech.repository.BlockedCommentRepository;
 import com.example.edtech.repository.CommentRepository;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +28,15 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final UserService userService;
+    private  final BlockedCommentRepository blockedCommentRepository;
 
 
     public Commentdto addComment(ObjectId courseId,ObjectId userId,String content){
-        CommentEntity comment = CommentEntity.toEntity( courseId, userId, content,  null,  null,0);
+     boolean isBlocked=blockedCommentRepository.existsByUserId(userId);
+     if(isBlocked)
+         throw new RuntimeException("User is blocked from commenting on this course.");
+
+     CommentEntity comment = CommentEntity.toEntity( courseId, userId, content,  null,  null,0);
         CommentEntity save = commentRepository.save(comment);
         return Commentdto.fromEntity(save);
     }

@@ -4,10 +4,7 @@ package com.example.edtech.controller;
 import com.example.edtech.entity.CommentEntity;
 import com.example.edtech.entity.CourseEntity;
 import com.example.edtech.entity.UserEntity;
-import com.example.edtech.service.CommentService;
-import com.example.edtech.service.CourseService;
-import com.example.edtech.service.LectureService;
-import com.example.edtech.service.UserService;
+import com.example.edtech.service.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -16,10 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.HashSet;
 
 @RestController
 @RequestMapping("/admin")
@@ -31,6 +27,7 @@ public class AdminController {
     private final LectureService lectureService;
     private  final CommentService commentService;
     private final UserService userService;
+    private  final BlockedCommentService blockedCommentService;
 
     @Operation(summary = "To delete the course")
 
@@ -86,7 +83,7 @@ if(!isDeleted)
     @GetMapping("user/delete/{userId}")
     public ResponseEntity<?>deleteUser(
             @Parameter(name = "",required = true)
-            @RequestParam String id
+            @PathVariable  String id
     ){
         try {
             ObjectId userId=new ObjectId(id);
@@ -107,23 +104,123 @@ if(!isDeleted)
     }
 
     @Operation(summary = "To lock the account")
-    @GetMapping("user/lock/{userId}")
+    @GetMapping("{userId}/lock")
     public ResponseEntity<?>lockUser(
             @Parameter(name = "",required = true)
-            @RequestParam String id
+            @PathVariable  String id
     ){
         try {
             ObjectId userId=new ObjectId(id);
 
             UserEntity user =userService.findUserById(userId);
-
             if(user==null)
                 return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
 
-            boolean isDeleted =userService.deleteUser(user);
-            if(!isDeleted)
-                return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Comment not deleted");
-            return  ResponseEntity.ok().body("Comment deleted successfully");
+            boolean isLocked =userService.lockUser(user.getId());
+            if(!isLocked)
+                return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to lock the user.");
+            return  ResponseEntity.ok().body("User locked successfully");
+        }
+        catch (IllegalArgumentException exception){
+            throw  new RuntimeException("Wrong id format");
+        }
+    }
+
+    @Operation(summary = "To unlock the account")
+    @GetMapping("{userId}/unlock")
+    public ResponseEntity<?>unlockUser(
+            @Parameter(name = "",required = true)
+            @PathVariable String id
+    ){
+        try {
+            ObjectId userId=new ObjectId(id);
+
+            UserEntity user =userService.findUserById(userId);
+            if(user==null)
+                return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+
+            boolean isSuccessfull =userService.unlockUser(user.getId());
+            if(!isSuccessfull)
+                return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to unlock the user.");
+            return  ResponseEntity.ok().body("User unlocked successfully");
+        }
+        catch (IllegalArgumentException exception){
+            throw  new RuntimeException("Wrong id format");
+        }
+    }
+
+    @Operation(summary = "To disable the account")
+    @GetMapping("{userId}/disable")
+    public ResponseEntity<?>disableUser(
+            @Parameter(name = "",required = true)
+            @PathVariable String id
+    ){
+        try {
+            ObjectId userId=new ObjectId(id);
+
+            UserEntity user =userService.findUserById(userId);
+            if(user==null)
+                return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+
+            boolean isSuccessfull =userService.disableUser(user.getId());
+            if(!isSuccessfull)
+                return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to disable the user.");
+            return  ResponseEntity.ok().body("User disabled successfully");
+        }
+        catch (IllegalArgumentException exception){
+            throw  new RuntimeException("Wrong id format");
+        }
+    }
+
+
+
+    @Operation(summary = "To enable the account")
+    @GetMapping("{userId}/enable")
+    public ResponseEntity<?>enableUser(
+            @Parameter(name = "",required = true)
+            @PathVariable String id
+    ){
+        try {
+            ObjectId userId=new ObjectId(id);
+
+            UserEntity user =userService.findUserById(userId);
+            if(user==null)
+                return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+
+            boolean isSuccessfull =userService.enableUser(user.getId());
+            if(!isSuccessfull)
+                return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to  enable the user.");
+            return  ResponseEntity.ok().body(" User enabled successfully");
+        }
+        catch (IllegalArgumentException exception){
+            throw  new RuntimeException("Wrong id format");
+        }
+    }
+
+
+
+
+    @Operation(summary = "To block the user from comment")
+    @GetMapping("{courseId}/block/{userId}")
+    public ResponseEntity<?>blockUserFromComment(
+            @Parameter(name = "",required = true)
+            @PathVariable String id1,
+            @Parameter(name = "",required = true)
+            @PathVariable String id
+
+    ){
+        try {
+            ObjectId userId=new ObjectId(id);
+
+            UserEntity user =userService.findUserById(userId);
+            if(user==null)
+                return  ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+            ObjectId courseId=new ObjectId(id1);
+            CourseEntity course = courseService.getCourseByID(courseId);
+            boolean isSuccessfull =blockedCommentService.blockUserFromComment(course,user);
+            if(!isSuccessfull)
+                return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to  block the user from commenting.");
+            return  ResponseEntity.ok().body(" User is blocked from commenting on this course");
         }
         catch (IllegalArgumentException exception){
             throw  new RuntimeException("Wrong id format");
@@ -135,8 +232,10 @@ if(!isDeleted)
 //    Todo:To delete the courses(Admin) =>Done
 //    Todo: To delete the user and the teachers =>Done
 //    Todo: To delete the courses and the lectures of the teacher => Done
-//    Todo:  To lock and unlock the account of user and the teacher
+//    Todo:  To lock and unlock the account of user and the teacher => Done
 //    Todo: To delete the comments => Done
 //    Todo: To block the user from the commenting on the course
 //
+
+
 

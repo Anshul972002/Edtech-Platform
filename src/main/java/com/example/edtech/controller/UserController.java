@@ -90,7 +90,7 @@ if(name==null && dob==null && address==null && image==null)
         if (image != null && !image.isEmpty()) {
             CloudinaryResponse cloudinaryResponse = fileUploadService.uploadFile(image);
 
-            user.setImageUrl(cloudinaryResponse.getUrl());
+            user.setProfile(Map.of("id",cloudinaryResponse.getId(),"url",cloudinaryResponse.getUrl()));
             // Handle image file saving here if needed
             // user.setImagePath(fileName); // optional field
         }
