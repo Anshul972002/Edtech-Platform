@@ -56,7 +56,7 @@ public class RouteFilter extends OncePerRequestFilter {
 
                 // Create UserPrincipal from JWT data - NO database call
                 List<GrantedAuthority> authorities = Collections.singletonList(
-                        new SimpleGrantedAuthority("ROLE_" + role)
+                        new SimpleGrantedAuthority(role)
                 );
 
                 UserPrincipal userPrincipal = new UserPrincipal(

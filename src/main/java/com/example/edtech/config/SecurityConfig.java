@@ -31,20 +31,18 @@ import java.util.Map;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Autowired
-    UserService userService;
 
-    @Autowired
-    RouteFilter filter;
+
+
 @Bean
 public BCryptPasswordEncoder passwordEncoder(){
     return new BCryptPasswordEncoder();
 }
     @Bean
-    public DaoAuthenticationProvider authProvider(){
+    public DaoAuthenticationProvider authProvider(UserDetailsService userDetailsService,BCryptPasswordEncoder passwordEncoder){
         DaoAuthenticationProvider authProvider=new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userService);
-        authProvider.setPasswordEncoder(passwordEncoder());
+        authProvider.setUserDetailsService(userDetailsService);
+        authProvider.setPasswordEncoder(passwordEncoder);
 
         return authProvider;
     }
@@ -55,7 +53,7 @@ public BCryptPasswordEncoder passwordEncoder(){
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,RouteFilter filter) throws Exception {
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.disable())
                 .exceptionHandling(customizer -> customizer

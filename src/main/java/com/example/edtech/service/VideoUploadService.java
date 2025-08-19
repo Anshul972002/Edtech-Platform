@@ -4,11 +4,12 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import com.example.edtech.util.CloudinaryResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Map;
-
+@Service
 @RequiredArgsConstructor
 public class VideoUploadService {
 
@@ -38,18 +39,14 @@ public class VideoUploadService {
 
     public void deleteFile(String id) {
         try {
-            cloudinary.uploader().destroy(id, ObjectUtils.emptyMap("resource_type","video"));
-//
-//            By default, Cloudinary assumes you’re dealing with images.
-//
-//                Since you’re storing lecture videos, you must explicitly tell it:
-//
-//                "resource_type", "video"
-//
-//                If you don’t do this, Cloudinary might look in the wrong storage bucket and fail to delete.
-        } catch (IOException e) {
+            cloudinary.uploader().destroy(id, ObjectUtils.asMap(
+                    "resource_type", "video"
+            ));
+        } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException("Failed to delete file from Cloudinary", e);
         }
     }
+
 }
 

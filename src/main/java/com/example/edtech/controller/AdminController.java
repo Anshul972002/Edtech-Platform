@@ -196,10 +196,6 @@ if(!isDeleted)
             throw  new RuntimeException("Wrong id format");
         }
     }
-
-
-
-
     @Operation(summary = "To block the user from comment")
     @PutMapping("{courseId}/block/{userId}")
     public ResponseEntity<?>blockUserFromComment(
@@ -228,8 +224,6 @@ if(!isDeleted)
             throw  new RuntimeException("Wrong id format");
         }
     }
-
-
     @Operation(summary = "To unblock the user from comment")
     @PutMapping("{courseId}/unblock/{userId}")
     public ResponseEntity<?>unblockUserFromComment(
@@ -265,7 +259,7 @@ if(!isDeleted)
 //    Todo:  To lock and unlock the account of user and the teacher => Done
 //    Todo: To delete the comments => Done
 //    Todo: To block the user from the commenting on the course
-//
+
 
 
 

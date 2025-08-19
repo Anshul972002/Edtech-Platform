@@ -1,5 +1,6 @@
 package com.example.edtech.service;
 
+import com.example.edtech.config.UserPrincipal;
 import com.example.edtech.dto.CommentTreeDto;
 import com.example.edtech.dto.Commentdto;
 import com.example.edtech.dto.Replydto;
@@ -13,6 +14,7 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -27,7 +29,7 @@ import java.util.stream.Collectors;
 public class CommentService {
 
     private final CommentRepository commentRepository;
-    private final UserService userService;
+
     private  final BlockedCommentRepository blockedCommentRepository;
 
 
@@ -136,7 +138,8 @@ commentRepository.save(comment);
 //        If student
         else {
             // Just delete the comment itself
-            if(!comment.getUserId().equals(userService.getProfile().getId().toHexString()))
+            UserPrincipal principal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            if(!comment.getUserId().equals(principal.getId()))
                 throw new RuntimeException("Access denied: You are not the owner of this comment.");
             commentRepository.deleteById(commentId);
 

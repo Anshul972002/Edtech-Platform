@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Data
 @Builder
@@ -24,7 +25,7 @@ private String courseId;
 private String description;
 
 
-private String videoUrl;
+private Map<String,String> videoUrl;
 
 private int durationInMinutes;
 
@@ -33,7 +34,7 @@ private int durationInMinutes;
                 .id(lecture.getId().toHexString())
                 .title(lecture.getTitle())
                 .description(lecture.getDescription())
-                .courseId(lecture.getCourseID().toHexString())
+                .courseId(lecture.getCourseId().toHexString())
                 .durationInMinutes(lecture.getDurationInMinutes())
                 .videoUrl(lecture.getVideoUrl())
                 .build();

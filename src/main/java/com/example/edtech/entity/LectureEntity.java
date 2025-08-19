@@ -23,7 +23,7 @@ private String description;
 private Map<String,String>videoUrl;
 private int durationInMinutes;
 private LocalDateTime createdAt;
-private  ObjectId courseID;
+private  ObjectId courseId;
 
 public  static LectureEntity toEntity(Lecturedto lecture){
     return LectureEntity.builder()

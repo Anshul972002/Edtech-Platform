@@ -42,22 +42,27 @@ private final CommentService commentService;
 private final CourseProgressService courseProgressService;
 
 
-public boolean save(Userdto user, CloudinaryResponse response){
+public UserEntity save(Userdto user, CloudinaryResponse response){
 
 
 try{
-   Map<String, String> profile = Map.of("id", response.getId(), "url", response.getUrl());
+
+   Map<String, String> profile=null;
+   if(response!=null)
+      profile     = Map.of("id", response.getId(), "url", response.getUrl());
    user.setPassword(passwordEncoder.encode(user.getPassword()));
    DtoToEntity util=new DtoToEntity();
    UserEntity entityuser = util.convertUser(user);
+   if(profile!=null)
    entityuser.setProfile(profile);
    entityuser.setRole("ROLE_USER");
    entityuser.setCreatedAt(LocalDateTime.now());
-   Objects.requireNonNull(repository.save(entityuser));
-   return true;
+   UserEntity user1 = Objects.requireNonNull(repository.save(entityuser));
+   return user1;
 }
 catch (Exception exception){
-   return  false;
+   System.out.println(exception.getMessage());
+   return null;
 }
 }
    public boolean findemailexist(String email) {

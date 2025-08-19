@@ -130,7 +130,7 @@ public class CourseService {
 
 
         LectureEntity lectureEntity=LectureEntity.toEntity(lecture);
-        lectureEntity.setCourseID(course.getId());
+        lectureEntity.setCourseId(course.getId());
         LectureEntity savedLecture = lectureRepository.save(lectureEntity);
         if (course.getLectureId() == null) {
             course.setLectureId(new ArrayList<>());

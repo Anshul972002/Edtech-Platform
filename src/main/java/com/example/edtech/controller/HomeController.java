@@ -17,6 +17,7 @@ import com.example.edtech.util.CloudinaryResponse;
 import com.example.edtech.util.LoginUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -70,47 +71,57 @@ public class HomeController {
 
     @Operation(summary = "Register api")
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Map<String, Object>> register(
-            @RequestParam("name") String name,
-            @RequestParam("dob") String dob,
-            @RequestParam("address") String address,
-            @RequestParam("email") String email,
-            @RequestParam("password") String password,
-            @RequestParam("confirmpassword") String confirmpassword,
-            @RequestParam("file") MultipartFile image) throws IOException {
+    public ResponseEntity<UserEntity> register(
+            @Valid @ModelAttribute Userdto user,
+//            @Parameter(description = "Full name") @RequestParam("name") String name,
+//            @Parameter(description = "Date of birth (MM/dd/yyyy)") @RequestParam("dob") String dob,
+//            @RequestParam("address") String address,
+//            @RequestParam("email") String email,
+//            @RequestParam("password") String password,
+//            @RequestParam("confirmpassword") String confirmpassword,
+//            @Parameter(description = "Profile image", required = false, content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM_VALUE))
+            @RequestParam(value = "file", required = false) MultipartFile image
+    ) throws IOException {
 
 
 
         try {
-            CloudinaryResponse cloudinaryResponse = fileUploadService.uploadFile(image);
+            if (userService.findemailexist(user.getEmail()))
+                throw new RuntimeException("User already exist");
+//                return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(Map.of("message", "User already exist"));
+            CloudinaryResponse cloudinaryResponse=null;
+            if (image!=null && !image.isEmpty())
+             cloudinaryResponse = fileUploadService.uploadFile(image);
 
-            // Fixed the password validation logic
-            if (!password.equals(confirmpassword)) {
-                return ResponseEntity.badRequest()
-                        .body(Map.of("message", "Password does not match"));
-            }
+//            // Fixed the password validation logic
+//            if (!password.equals(confirmpassword)) {
+//                return ResponseEntity.badRequest()
+//                        .body(Map.of("message", "Password does not match"));
+//            }
 
             // Create Userdto object manually
-            Userdto user = new Userdto();
-            user.setName(name);
-            user.setDob(dob);
-            user.setAddress(address);
-            user.setEmail(email);
-            user.setPassword(password);
-            user.setConfirmpassword(confirmpassword);
-            String password1=user.getPassword();
-            String confirmpassword1=user.getConfirmpassword();
-            if (userService.findemailexist(user.getEmail()))
-                return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body(Map.of("message", "User already exist"));
-            boolean save = userService.save(user,cloudinaryResponse);
+//            Userdto user = new Userdto();
+//            user.setName(name);
+//            user.setDob(dob);
+//            user.setAddress(address);
+//            user.setEmail(email);
+//            user.setPassword(password);
+//            user.setConfirmpassword(confirmpassword);
+//            String password1=user.getPassword();
+//            String confirmpassword1=user.getConfirmpassword();
+
+
+            UserEntity userEntity= userService.save(user,cloudinaryResponse);
             // your logic here
-            if(!save){
+            if(userEntity==null){
+                if(cloudinaryResponse!=null)
                 fileUploadService.deleteFile(cloudinaryResponse.getId());
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "User not saved"));
+                throw new RuntimeException("User not saved");
+//                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "User not saved"));
             }
 
             else
-                return ResponseEntity.ok(Map.of("message", "Registered successfully"));
+                return ResponseEntity.ok(userEntity);
         }
         catch (IOException exception){
             System.out.println(exception.getMessage());
@@ -134,6 +145,7 @@ public class HomeController {
                 UserPrincipal userPrincipal=(UserPrincipal) authenticate.getPrincipal();
                 String accessToken = jwtService.generateAccessToken(userPrincipal);
                 String refreshToken = jwtService.generateRefreshToken(userPrincipal);
+//
                 String id = userPrincipal.getId();
                 boolean save = refreshTokenService.save(new ObjectId(id), refreshToken);
               if (!save)
@@ -154,7 +166,8 @@ public class HomeController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Login failed"));
         }
     }
-
+@SecurityRequirement(name = "bearerAuth")
+  @Operation(summary = "To get the refresh token")
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@RequestBody RefreshRequest request) {
         String refreshToken = request.getRefreshToken();
@@ -173,7 +186,7 @@ public class HomeController {
         List<GrantedAuthority>authorities= Collections.singletonList(new SimpleGrantedAuthority(role));
 
         // issue new access token
-UserPrincipal userPrincipal=new UserPrincipal(userId,username,null,role,authorities);
+UserPrincipal userPrincipal=new UserPrincipal(userId,username,null,role,authorities,userById.isAccountLocked(),userById.isEnabled());
         String newAccessToken = jwtService.generateAccessToken(userPrincipal);
 
         return ResponseEntity.ok(Map.of("accessToken",newAccessToken,"refreshToken", refreshToken));
@@ -183,7 +196,7 @@ UserPrincipal userPrincipal=new UserPrincipal(userId,username,null,role,authorit
 
     //    Courses API
     @Operation(summary = "List of all the published courses")
-    @GetMapping("/courses")
+    @GetMapping("/activeCourses")
     public ResponseEntity<List<CourseReplydto>>getAllActiveCourses(@Parameter(example = "0") @RequestParam(defaultValue = "0")int page, @Parameter(description = "Number of items per page",example = "10")@RequestParam(defaultValue = "10") int size){
         Page<CourseReplydto> allActiveCourses = courseService.getAllActiveCourses(page, size);
 
