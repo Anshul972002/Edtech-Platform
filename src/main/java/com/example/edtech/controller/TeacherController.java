@@ -118,7 +118,7 @@ private final FileUploadService fileUploadService;
                 course.setPublished(true);
                 course.setUpdatedAt(LocalDateTime.now());
                 CourseEntity save = courseRepository.save(course);
-                return ResponseEntity.ok(Map.of("message","Course is published")) ;
+                return ResponseEntity.ok(save);
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message","You are not valid user")) ;
         }
@@ -130,10 +130,9 @@ private final FileUploadService fileUploadService;
     @PutMapping(value = "/courses/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateCourse( @Parameter(
             description = "ID of the course to edit",
-            example = "68918c0fcda0006027078205"
+            example = "68a54f0171e5d5ef4b4fc18c"
     )@PathVariable String id, @ModelAttribute Coursedto dto,@RequestParam(value = "file", required = false) MultipartFile image) throws IOException {
         Optional<CourseEntity> optionalCourse = courseRepository.findById(new ObjectId(id));
-
         if (optionalCourse.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("message", "Course not found"));
@@ -151,8 +150,9 @@ if (image!=null && !image.isEmpty()){
         course.setUpdatedAt(LocalDateTime.now());
         course.setCreatedBy(courseService.getCurrentUserId());
         courseRepository.save(course);
+        CourseReplydto courseReplydto = CourseReplydto.fromEntity(course);
 
-        return ResponseEntity.ok(Map.of("message", "Course updated successfully"));
+        return ResponseEntity.ok(courseReplydto);
     }
 
 
@@ -165,15 +165,20 @@ if (image!=null && !image.isEmpty()){
     @DeleteMapping("/courses/{id}")
     public ResponseEntity<Map<String, Object>> deleteCourse( @Parameter(
             description = "ID of the course to be deleted",
-            example = "68918c0fcda0006027078205"
+            example = "68a562fa90c529015c59de6c"
     )@PathVariable String id) {
         try {
             ObjectId courseId = new ObjectId(id);
 
-            boolean exists = courseService.isCourseExistsById(courseId);
-            if (!exists) {
+            CourseEntity courseByID = courseService.getCourseByID(courseId);
+            if (courseByID==null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
                         .body(Map.of("message", "No course found with this ID"));
+            }
+            boolean validUserOfCourse = courseService.isValidUserOfCourse(courseByID);
+            if (!validUserOfCourse) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "You are not the valid user of the course"));
             }
 
             courseService.deleteCourse(courseId);
