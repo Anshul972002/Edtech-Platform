@@ -139,6 +139,7 @@ public class HomeController {
         try {
             UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user.getEmail().toLowerCase().trim(), user.getPassword());
             Authentication authenticate = authManager.authenticate(token);
+
             boolean authenticated = authenticate.isAuthenticated();
             if (authenticated){
 //                return ResponseEntity.status(HttpStatus.OK).body(Map.of("token",jwtService.generateToken(user.getEmail())));
@@ -166,7 +167,7 @@ public class HomeController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message", "Login failed"));
         }
     }
-@SecurityRequirement(name = "bearerAuth")
+
   @Operation(summary = "To get the refresh token")
     @PostMapping("/refresh")
     public ResponseEntity<?> refresh(@RequestBody RefreshRequest request) {

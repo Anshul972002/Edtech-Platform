@@ -9,6 +9,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -21,11 +22,11 @@ public class CourseEntity {
    String title;
 String description;
 String category;
-String thumbnailUrl;
 ObjectId createdBy;
 LocalDateTime createdAt;
 LocalDateTime updatedAt;
 
+Map<String,String> thumbnail;
 List<ObjectId> lectureId;
 //List<Quiz>quizzes;
 List<ObjectId>enrolledUser;

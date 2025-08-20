@@ -3,6 +3,7 @@ package com.example.edtech.service;
 import com.example.edtech.config.UserPrincipal;
 import com.example.edtech.dto.CourseReplydto;
 import com.example.edtech.dto.Coursedto;
+import com.example.edtech.dto.LectureReplydto;
 import com.example.edtech.dto.Lecturedto;
 import com.example.edtech.entity.CommentEntity;
 import com.example.edtech.entity.CourseEntity;
@@ -12,6 +13,7 @@ import com.example.edtech.repository.CommentRepository;
 import com.example.edtech.repository.CourseRepository;
 import com.example.edtech.repository.LectureRepository;
 import com.example.edtech.repository.UserRepository;
+import com.example.edtech.util.CloudinaryResponse;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,10 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.file.AccessDeniedException;
 import java.security.Security;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -47,26 +46,29 @@ public class CourseService {
     private  final VideoUploadService videoUploadService;
     private final CommentRepository commentRepository;
 
-    public boolean save(Coursedto dto) {
-        CourseEntity course = CourseEntity.builder().title(dto.getTitle()).description(dto.getDescription()).category(dto.getCategory()).thumbnailUrl(dto.getThumbnailUrl()).build();
+    public CourseReplydto save(Coursedto dto, CloudinaryResponse response) {
+        CourseEntity course = CourseEntity.builder().title(dto.getTitle()).description(dto.getDescription()).category(dto.getCategory()).build();
         try {
             course.setCreatedAt(LocalDateTime.now());
             course.setUpdatedAt(LocalDateTime.now());
            course.setPublished(false);
            course.setPaid(false);
+           if (response!=null)
+           course.setThumbnail(Map.of("id", response.getId(),"url", response.getUrl()));
             course.setCreatedBy(getCurrentUserId());
-            Objects.requireNonNull(courseRepository.save(course));
-            return true;
+            CourseEntity course1 = Objects.requireNonNull(courseRepository.save(course));
+
+            return  CourseReplydto.fromEntity(course1);
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
-            return false;
+            return null;
         }
     }
 
     public ObjectId getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserEntity byEmail = userRepository.findByEmail(authentication.getName());
-        return byEmail.getId();
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        return new ObjectId(principal.getId());
     }
 
     public boolean isExistsByTitle(String title) {
@@ -138,6 +140,7 @@ public class CourseService {
         course.getLectureId().add(savedLecture.getId());
         course.setUpdatedAt(LocalDateTime.now());
         courseRepository.save(course);
+        LectureReplydto.fromEntity(savedLecture);
         return true;
     }
 

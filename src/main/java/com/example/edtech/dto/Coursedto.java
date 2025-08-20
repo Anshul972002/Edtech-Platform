@@ -29,20 +29,13 @@ public class Coursedto {
     @Schema(example = "Development", description = "Category of the course")
     private String category;
 
-    @NotBlank(message = "Enter the URL")
-    @Schema(example = "https://example.com/image.jpg", description = "Thumbnail image URL")
-    private String thumbnailUrl;
 
-    @Schema(example = "false", description = "Is the course published?")
-    private boolean isPublished;
 
 
     public static Coursedto fromEntity(CourseEntity course){
          return Coursedto.builder().title(course.getTitle()).description(course.getDescription())
                  .category(course.getCategory())
 
-                 .thumbnailUrl(course.getThumbnailUrl())
-                 .isPublished(course.isPublished())
                  .build();
     }
 }

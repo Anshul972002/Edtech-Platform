@@ -22,7 +22,7 @@ public class VideoUploadService {
         ));
      String url=   uploadResult.get("secure_url").toString();
        String id= uploadResult.get("public_id").toString();
-        CloudinaryResponse response=new CloudinaryResponse(url,id);
+        CloudinaryResponse response=new CloudinaryResponse(id,url);
    return  response;
     }
 

@@ -20,6 +20,8 @@ public class FileUploadService {
 
 @Value("${cloudinary.profiles}")
     private String profileBucket;
+    @Value("${cloudinary.course.thumbnail}")
+    private String courseThumbnailBucket;
 
 
 
@@ -55,6 +57,39 @@ public class FileUploadService {
 
     }
 
+    public CloudinaryResponse uploadFile(MultipartFile file,int thumbnail) throws IOException {
+        String originalFileName = file.getOriginalFilename();
+
+        String bucketName = null;
+        try{
+            if (thumbnail==1)
+            bucketName = courseThumbnailBucket;
+            else
+                bucketName=profileBucket;
+
+            // Remove extension if present (optional, but cleaner)
+            String publicId = originalFileName != null
+                    ? originalFileName.replaceFirst("[.][^.]+$", "")
+                    : "default_filename";
+
+            Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.asMap(
+                    "folder", bucketName,
+                    "public_id", publicId
+            ));
+            String secureUrl = uploadResult.get("secure_url").toString();
+            String Id = uploadResult.get("public_id").toString();
+            return new CloudinaryResponse(Id,secureUrl);
+        }
+        catch (Exception exception){
+            System.out.println(exception.getMessage());
+            return null;
+        }
+
+        // Determine the bucket based on the bucket type
+
+
+
+    }
 
     public void deleteFile(String id) {
         try {

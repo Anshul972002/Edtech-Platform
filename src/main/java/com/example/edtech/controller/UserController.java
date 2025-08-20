@@ -33,6 +33,8 @@ import java.util.stream.Collectors;
 @SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequiredArgsConstructor
+
+
 @RequestMapping("user")
 public class UserController {
 

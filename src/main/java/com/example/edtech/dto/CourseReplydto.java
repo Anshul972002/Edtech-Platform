@@ -10,6 +10,7 @@ import org.springframework.data.annotation.Id;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 
 @Builder
@@ -23,7 +24,7 @@ public class CourseReplydto {
     private String description;
 
     private String category;
-    private String thumbnailUrl;
+    private Map<String,String> thumbnailUrl;
     private boolean isPublished;
     private List<ObjectId>lectureId;
 private boolean isPaid;
@@ -32,7 +33,7 @@ private boolean isPaid;
                 .category(course.getCategory())
                 .id(course.getId().toHexString())
                 .lectureId(course.getLectureId())
-                .thumbnailUrl(course.getThumbnailUrl())
+                .thumbnailUrl(course.getThumbnail())
                 .isPublished(course.isPublished())
                 .build();
     }
