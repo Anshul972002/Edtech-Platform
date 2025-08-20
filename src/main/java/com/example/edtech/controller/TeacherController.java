@@ -19,6 +19,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.print.attribute.standard.Media;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
@@ -83,7 +85,7 @@ private final FileUploadService fileUploadService;
     }
 
     @Operation(summary = "List of all free course")
-    @GetMapping("/courses?free")
+    @GetMapping("/courses/free")
     public ResponseEntity<List<CourseReplydto>>getFreeCourses(@Parameter(example = "0") @RequestParam(defaultValue = "0")int page, @Parameter(description = "Number of items per page",example = "10")@RequestParam(defaultValue = "10") int size){
 
         Page<CourseReplydto> allCourses = courseService.getFreeCourses(page, size);
@@ -91,11 +93,11 @@ private final FileUploadService fileUploadService;
         return ResponseEntity.ok(allCourses.getContent());
     }
 
+
     @Operation(summary = "List of all paid course")
-    @GetMapping("/courses?paid")
+    @GetMapping("/courses/paid")
     public ResponseEntity<List<CourseReplydto>>getPaidCourses(@Parameter(example = "0") @RequestParam(defaultValue = "0")int page, @Parameter(description = "Number of items per page",example = "10")@RequestParam(defaultValue = "10") int size){
         Page<CourseReplydto> allCourses = courseService.getPaidCourses(page, size);
-
         return ResponseEntity.ok(allCourses.getContent());
     }
 
@@ -105,19 +107,20 @@ private final FileUploadService fileUploadService;
     @PostMapping("/courses/{id}/publish")
     public ResponseEntity<?>publishTheCourse( @Parameter(
             description = "ID of the course to be published",
-            example = "68918c0fcda0006027078205"
-    )
-                                              @PathVariable String id) throws AccessDeniedException {
+            example = "68a54f0171e5d5ef4b4fc18c"
+    ) @PathVariable String id) throws AccessDeniedException {
         try {
             ObjectId objectId=new ObjectId(id);
             CourseEntity course=courseRepository.findById(objectId).orElseThrow(()->new RuntimeException("Course not found"));
-            if(courseService.isValidUserOfCourse(course)){
+            if(courseService.isValidUserOfCourse(course) ){
+                if( course.isPublished())
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message","Course is already published")) ;
                 course.setPublished(true);
                 course.setUpdatedAt(LocalDateTime.now());
                 CourseEntity save = courseRepository.save(course);
                 return ResponseEntity.ok(Map.of("message","Course is published")) ;
             }
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message","Course is published")) ;
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message","You are not valid user")) ;
         }
         catch (Exception exception){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message","Give the valid id")) ;
@@ -188,14 +191,12 @@ if (image!=null && !image.isEmpty()){
 //    Adding the lecture to the course
 //    First of all we have to deal with the duplication
   @Operation(summary = "Add the lecture to the course")
-    @PostMapping("/courses/{id}/lecture")
+    @PostMapping(value = "/courses/{id}/lecture",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?>addLectureToCourse(
-          @RequestParam("Course Id") String id,
-          @RequestParam("title") String title,
-          @RequestParam("lectureNo") int lectureNo,
-          @RequestParam("description") String description,
-          @RequestParam("durationInMinutes") int durationInMinutes,
-          @RequestParam("file") MultipartFile video
+          @Valid @ModelAttribute Lecturedto lecture,
+          @RequestParam(value = "video",required = false) MultipartFile video,
+          @Parameter(example = "68a54f0171e5d5ef4b4fc18c",description = "Id of the course to add the lecture")
+          @PathVariable String id
 
   ){
 // The video transcoding is left meaning converting the video in to the different resolutions
@@ -214,17 +215,13 @@ try {
     uploadVideoUrl = videoUploadService.uploadVideoWithResolution(video);
 
 
-    Lecturedto lecture = Lecturedto.builder().lectureNo(lectureNo).title(title)
-            .description(description)
-            .durationInMinutes(durationInMinutes)
-            .build();
-if (uploadVideoUrl!=null)
-    lecture.setVideoUrl(uploadVideoUrl);
+
+
 
 
 //Save the lecture to the course
-    boolean isSaved = courseService.saveLectureInCourse(lecture, course);
-    if (!isSaved){
+    LectureReplydto isSaved = courseService.saveLectureInCourse(lecture, course,uploadVideoUrl);
+    if (isSaved==null){
         videoUploadService.deleteFile(uploadVideoUrl.get("id"));
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("message", "Lecture is not saved"));
@@ -232,7 +229,7 @@ if (uploadVideoUrl!=null)
 
 
     return ResponseEntity.status(HttpStatus.OK)
-            .body(uploadVideoUrl);
+            .body(isSaved);
 
 }
 catch (IllegalArgumentException e) {
@@ -248,13 +245,12 @@ catch (IllegalArgumentException e) {
     @Operation(summary = "To get all the lecture of a course")
     @GetMapping("/courses/{id}/lecture")
     public ResponseEntity<?>getAllLectureOfCourse(
-            @Parameter(
-                    description = "ID of the course",
-                    example = "68918c0fcda0006027078205"
-            )
+            @Parameter(example = "68a54f0171e5d5ef4b4fc18c",description = "Id of the course ")
             @PathVariable String id){
         ObjectId  courseId=new ObjectId(id);
         CourseEntity courseByID = courseService.getCourseByID(courseId);
+       if (courseByID==null)
+           return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Course not found");
         List<LectureReplydto> lectures = lectureService.getLectures(courseId);
 return ResponseEntity.ok(lectures);
     }

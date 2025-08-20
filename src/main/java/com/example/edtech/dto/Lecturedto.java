@@ -13,7 +13,7 @@ public class Lecturedto {
     @Size(min = 3, max = 100, message = "Title must be between 3 and 100 characters")
     @Schema(description = "Title of the lecture", example = "Introduction to Java Streams")
     private String title;
-   @NotBlank(message = "Lecture no cannot be empty")
+    @Min(value = 1, message = "Lecture number must be at least 1")
     @Schema(description = "Lecture no", example = "1")
     private int lectureNo;
 
@@ -29,6 +29,5 @@ public class Lecturedto {
     @Schema(description = "Duration of the lecture in minutes", example = "60")
     private int durationInMinutes;
 
-    private Map<String,String>videoUrl;
 }
 

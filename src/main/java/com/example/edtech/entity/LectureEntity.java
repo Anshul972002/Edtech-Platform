@@ -31,7 +31,6 @@ public  static LectureEntity toEntity(Lecturedto lecture){
             .description(lecture.getDescription())
             .lectureNo(lecture.getLectureNo())
             .durationInMinutes(lecture.getDurationInMinutes())
-            .videoUrl(lecture.getVideoUrl())
             .createdAt(LocalDateTime.now())
             .build();
 }

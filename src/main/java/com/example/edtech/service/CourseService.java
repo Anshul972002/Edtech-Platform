@@ -128,20 +128,27 @@ public class CourseService {
         return true;
     }
 
-    public boolean saveLectureInCourse(Lecturedto lecture,CourseEntity course) {
+    public LectureReplydto saveLectureInCourse(Lecturedto lecture,CourseEntity course,Map<String,String> response) {
 
-
-        LectureEntity lectureEntity=LectureEntity.toEntity(lecture);
-        lectureEntity.setCourseId(course.getId());
-        LectureEntity savedLecture = lectureRepository.save(lectureEntity);
-        if (course.getLectureId() == null) {
-            course.setLectureId(new ArrayList<>());
+        try {
+            LectureEntity lectureEntity = LectureEntity.toEntity(lecture);
+            if (response!=null)
+                lectureEntity.setVideoUrl(response);
+            lectureEntity.setCourseId(course.getId());
+            LectureEntity savedLecture = lectureRepository.save(lectureEntity);
+            if (course.getLectureId() == null) {
+                course.setLectureId(new ArrayList<>());
+            }
+            course.getLectureId().add(savedLecture.getId());
+            course.setUpdatedAt(LocalDateTime.now());
+            courseRepository.save(course);
+            LectureReplydto lectureReplydto = LectureReplydto.fromEntity(savedLecture);
+            return lectureReplydto;
         }
-        course.getLectureId().add(savedLecture.getId());
-        course.setUpdatedAt(LocalDateTime.now());
-        courseRepository.save(course);
-        LectureReplydto.fromEntity(savedLecture);
-        return true;
+        catch (Exception e){
+            System.out.println(e.getMessage());
+            return null;
+        }
     }
 
     public Page<CourseReplydto> getAllActiveCourses(int page,int size) {
@@ -171,7 +178,7 @@ public class CourseService {
         String teacherId = userPrincipal.getId();
 
         PageRequest pageRequest = PageRequest.of(page, size);
-        Page<CourseEntity> courses = courseRepository.findByCreatedByAndIsPaidFalse(teacherId, pageRequest);
+        Page<CourseEntity> courses = courseRepository.findByCreatedByAndIsPaidFalse(new ObjectId(teacherId), pageRequest);
           return courses.map(CourseReplydto::fromEntity);
 
     }
@@ -183,7 +190,7 @@ public class CourseService {
         String teacherId = userPrincipal.getId();
 
         PageRequest pageRequest = PageRequest.of(page, size);
-        Page<CourseEntity> courses = courseRepository.findByCreatedByAndIsPaidTrue(teacherId, pageRequest);
+        Page<CourseEntity> courses = courseRepository.findByCreatedByAndIsPaidTrue(new ObjectId(teacherId), pageRequest);
         return courses.map(CourseReplydto::fromEntity);
 
     }

@@ -72,6 +72,8 @@ public BCryptPasswordEncoder passwordEncoder(){
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
                                 "/refresh"
+//                                "/user/**",
+//                                "/teacher/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
