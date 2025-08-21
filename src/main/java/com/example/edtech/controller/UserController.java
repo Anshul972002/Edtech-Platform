@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Tag(name = "User Api",description = "Endpoint for user-related operations")
+@Tag(name = "User Api",description = "Endpoint for User related operations")
 @SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequiredArgsConstructor
@@ -62,6 +62,7 @@ private final FileUploadService fileUploadService;
         Userdto profiledto=Userdto.builder().name(profile.getName()).dob(profile.getDob()).email(profile.getEmail()).address(profile.getAddress()).build();
         return  ResponseEntity.ok(profiledto);
     }
+
     @Operation(summary = "To update the profile")
     @PostMapping("/profile")
     public ResponseEntity<?> updateUserProfie(  @RequestParam(value = "name",required = false) String name,
@@ -131,12 +132,13 @@ userRepository.save(user);
        }
     }
 
+
 //    To enroll in the course
 //    Todo:To add the payment gateway for the paid courses
 @Operation(summary = "To enroll in the course")
     @PostMapping("/courses/{id}/enroll")
     public ResponseEntity<?>enrollInCourses(
-            @Parameter(description = "Id of course to enroll",example = "68918c0fcda0006027078205")
+            @Parameter(description = "Id of course to enroll",example = "68a54f0171e5d5ef4b4fc18c")
             @PathVariable String id){
 
         ObjectId objectId=new ObjectId(id);
@@ -146,7 +148,7 @@ userRepository.save(user);
         CourseEntity courseByID = courseService.getCourseByID(objectId);
 
         List<ObjectId>enrolledUser=courseByID.getEnrolledUser();
-        if (enrolledUser.contains(user.getId()))
+        if (enrolledUser!=null && enrolledUser.contains(user.getId()))
             throw new IllegalStateException("User already enrolled in this course");
    if (!courseByID.isPublished())
        throw new RuntimeException("Course is not published yet");
@@ -159,7 +161,7 @@ userRepository.save(user);
     @Operation(summary = "To access the course")
     @GetMapping("/courses/{id}")
     public ResponseEntity<?> getCourse(
-            @Parameter(description = "Id of course to fetch", example = "68918c0fcda0006027078205")
+            @Parameter(description = "Id of course to fetch", example = "68a54f0171e5d5ef4b4fc18c")
             @PathVariable String id) {
 
         try {
@@ -185,7 +187,8 @@ userRepository.save(user);
             List<LectureReplydto> lectures = lectureService.getLectures(objectId);
             return ResponseEntity.ok(lectures);
 
-        } catch (IllegalArgumentException e) { // For invalid ObjectId
+        }
+        catch (IllegalArgumentException e) { // For invalid ObjectId
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid course ID format");
         }
     }
@@ -197,9 +200,9 @@ userRepository.save(user);
     @Operation(summary = "To delete the comment")
     @GetMapping("/{courseId}/deleteCourse/{commentId}")
     public ResponseEntity<?>deleteComment(
-            @Parameter(name = "",required = true)
+            @Parameter(name = "68a54f0171e5d5ef4b4fc18c",required = true)
             @RequestParam String id,
-            @Parameter(name = "",required = true)
+            @Parameter(name = "68a627b6ad7883100a539166",required = true)
             @RequestParam String cId
     ){
         try {

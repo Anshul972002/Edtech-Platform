@@ -6,6 +6,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface UserRepository extends MongoRepository<UserEntity, ObjectId> {
     UserEntity findByEmail(String email);
@@ -13,8 +14,7 @@ public interface UserRepository extends MongoRepository<UserEntity, ObjectId> {
     List<UserEntity> findByEnrolledCoursesContains(ObjectId id);
 
 
-
-
+    Optional<UserEntity> findByIdAndEnrolledCoursesContains(ObjectId id, ObjectId courseId);
 
 }
 //    And you call:

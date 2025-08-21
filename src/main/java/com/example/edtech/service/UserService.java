@@ -204,4 +204,15 @@ return principal.getId();
       }
    }
 
+   public   UserEntity isEnrolledInCourse(ObjectId courseId1,ObjectId id) {
+    try{
+
+       UserEntity user = repository.findByIdAndEnrolledCoursesContains(id, courseId1).orElseThrow(() -> new RuntimeException("User is not enrolled in the course"));
+       return user;
+    }
+catch (Exception exception){
+   System.out.println(exception.getMessage());
+   return null;
+}
+   }
 }

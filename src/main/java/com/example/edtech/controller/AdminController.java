@@ -17,10 +17,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashSet;
 
+
+@Tag(name = "Admin api",description = "Endpoint for the Admin related operations")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/admin")
-@Tag(name = "Admin Controller")
-@SecurityRequirement(name = "basicAuth")
 @RequiredArgsConstructor
 public class AdminController {
     private final CourseService courseService;

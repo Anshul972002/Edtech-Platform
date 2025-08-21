@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-@Tag(name = "Teacher api",description = "Endpoint for the teacher related api")
+@Tag(name = "Teacher api",description = "Endpoint for the Teacher related operations")
 @SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequiredArgsConstructor

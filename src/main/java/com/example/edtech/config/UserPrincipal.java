@@ -80,9 +80,8 @@ public class UserPrincipal implements UserDetails {
 
     public static UserPrincipal create(UserEntity user) {
         // Since role is a String, create a single authority
-        List<GrantedAuthority> authorities = Collections.singletonList(
-                new SimpleGrantedAuthority("ROLE_" + user.getRole())
-        );
+        List<GrantedAuthority> authorities = (user.getRole() != null)?Collections.singletonList(
+                new SimpleGrantedAuthority("ROLE_" + user.getRole())):Collections.emptyList();
 
         return new UserPrincipal(
                 user.getId().toHexString(),  // Convert ObjectId to String

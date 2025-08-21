@@ -202,20 +202,13 @@ UserPrincipal userPrincipal=new UserPrincipal(userId,username,null,role,authorit
         Page<CourseReplydto> allActiveCourses = courseService.getAllActiveCourses(page, size);
 
         return ResponseEntity.ok(allActiveCourses.getContent());
-    }
 
-    @Operation(summary = "List of all  courses")
-    @GetMapping("/courses")
-    public ResponseEntity<List<CourseReplydto>>getAllCourses(@Parameter(example = "0") @RequestParam(defaultValue = "0")int page, @Parameter(description = "Number of items per page",example = "10")@RequestParam(defaultValue = "10") int size){
-        Page<CourseReplydto> allCourses = courseService.getAllCourses(page, size);
-
-        return ResponseEntity.ok(allCourses.getContent());
     }
 
     @Operation(summary = "Details of particular course")
     @GetMapping("/courses/{id}?details")
     public ResponseEntity<?>getCourse(
-            @Parameter(description = "Id of course to fetch",example = "68918c0fcda0006027078205")
+            @Parameter(description = "Id of course to fetch",example = "68a54f0171e5d5ef4b4fc18c")
             @PathVariable String id){
     try {
         ObjectId objectId=new ObjectId(id);
@@ -236,4 +229,5 @@ UserPrincipal userPrincipal=new UserPrincipal(userId,username,null,role,authorit
 
 
 }
+
 //eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJhbnNodWxAMjAwMyIsImlhdCI6MTc1NDI4MDE1NywiZXhwIjoxNzU0MjgwNDU3fQ.NcyZLwSGBXxPOMW5ym-95A0TG8KCje1Y7-d5PmkWdnQ

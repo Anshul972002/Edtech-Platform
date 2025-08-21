@@ -18,10 +18,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -44,17 +41,31 @@ public class CommentService {
     }
 
     public Replydto addReply(ObjectId courseId, ObjectId parentCommentId, ObjectId userId, String content) {
-        //  Find the parent comment
-        CommentEntity parent = commentRepository.findById(parentCommentId)
-                .orElseThrow(() -> new RuntimeException("Parent comment not found"));
-        //  Build ancestor list: copy parent's ancestors + parent ID
-        List<ObjectId> newAncestors = new ArrayList<>(parent.getAncestorIds());
-        newAncestors.add(parent.getId());
-        int reply=parent.getReplyCount()+1;
-        //  Create reply comment
-        CommentEntity comment = CommentEntity.toEntity( courseId, userId, content,  parentCommentId,  newAncestors,reply);
-        CommentEntity saved = commentRepository.save(comment);
-        return Replydto.fromEntity(saved);
+//        Check if it the user is blocked
+     try {
+         boolean isBlocked=blockedCommentRepository.existsByUserId(userId);
+         if(isBlocked)
+             throw new RuntimeException("User is blocked from commenting on this course.");
+         //  Find the parent comment
+         CommentEntity parent = commentRepository.findById(parentCommentId)
+                 .orElseThrow(() -> new RuntimeException("Parent comment not found"));
+         //  Build ancestor list: copy parent's ancestors + parent ID
+         List<ObjectId> newAncestors = new ArrayList<>(
+                 parent.getAncestorIds() != null ? parent.getAncestorIds() : Collections.emptyList()
+         );
+         newAncestors.add(parent.getId());
+         int reply=parent.getReplyCount()+1;
+         //  Create reply comment
+         parent.setReplyCount(reply);
+         commentRepository.save(parent);
+         CommentEntity comment = CommentEntity.toEntity( courseId, userId, content,  parentCommentId,  newAncestors,0);
+         CommentEntity saved = commentRepository.save(comment);
+         return Replydto.fromEntity(saved);
+     }
+     catch (Exception exception){
+         System.out.println(exception.getMessage());
+         throw new RuntimeException("Something went wrong");
+     }
     }
 
     /**
@@ -66,9 +77,12 @@ if (allComments.isEmpty())
     throw new RuntimeException("No comment is founds");
         Map<String, List<CommentTreeDto>> byParent = allComments.stream()
                 .map(CommentTreeDto::fromEntity)
-                .collect(Collectors.groupingBy(CommentTreeDto::getParentCommentId));
+                .collect(Collectors.groupingBy(dto ->
+                        dto.getParentCommentId() == null ? "ROOT" : dto.getParentCommentId()
+                ));
 
-        return buildTree(null, byParent);
+
+        return buildTree("ROOT", byParent);
     }
 //    grouping by works like this grouup all the commenttreeDto in map with the key as the parentid
 //    {
@@ -139,11 +153,9 @@ commentRepository.save(comment);
         else {
             // Just delete the comment itself
             UserPrincipal principal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            if(!comment.getUserId().equals(principal.getId()))
+            if(!comment.getUserId().toHexString().equals(principal.getId()))
                 throw new RuntimeException("Access denied: You are not the owner of this comment.");
             commentRepository.deleteById(commentId);
-
-
             if (comment.getParentCommentId() != null) {
                 commentRepository.decrementReplyCount(comment.getParentCommentId());
             }
