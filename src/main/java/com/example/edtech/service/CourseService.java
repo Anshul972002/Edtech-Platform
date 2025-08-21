@@ -94,6 +94,7 @@ public class CourseService {
         });
 
         // 4. Delete lectures from DB
+        if (lectures!=null && !lectures.isEmpty())
         lectureRepository.deleteByCourseId(id);
 
         // 5. Delete comments linked to course
@@ -109,6 +110,7 @@ public class CourseService {
                 enrolledCourses.remove(id);
             }
         });
+        if (users!=null && users.isEmpty() )
         userRepository.saveAll(users);
 
         // 7. Finally delete the course

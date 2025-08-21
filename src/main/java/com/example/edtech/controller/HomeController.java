@@ -137,6 +137,11 @@ public class HomeController {
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> loginUser(@Valid @RequestBody LoginUser user) {
         try {
+            UserEntity user1 = userService.getUser(user.getEmail());
+            if (user1!=null  && !user1.isEnabled())
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message","User is diabled"));
+            if (user1!=null && user1.isAccountLocked())
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message","User account is locked"));
             UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user.getEmail().toLowerCase().trim(), user.getPassword());
             Authentication authenticate = authManager.authenticate(token);
 

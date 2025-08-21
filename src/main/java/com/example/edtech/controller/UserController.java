@@ -206,8 +206,7 @@ userRepository.save(user);
             @Parameter(name = "68a54f0171e5d5ef4b4fc18c",required = true)
             @RequestParam String id,
             @Parameter(name = "68a627b6ad7883100a539166",required = true)
-            @RequestParam String cId
-    ){
+            @RequestParam String cId){
         try {
             ObjectId courseId=new ObjectId(id);
             ObjectId commentId=new ObjectId(cId);

@@ -34,7 +34,7 @@ public class AdminController {
 
     @GetMapping("/course/{courseId}")
     public ResponseEntity<?>deleteCourse(
-            @Parameter(name = "",required = true)
+            @Parameter(name = "68a5648190c529015c59de72",required = true)
             @RequestParam String id){
         try {
             ObjectId courseId=new ObjectId(id);
@@ -81,13 +81,13 @@ if(!isDeleted)
 
 
     @Operation(summary = "To delete the user")
-    @GetMapping("user/delete/{userId}")
+    @DeleteMapping("user/delete/{userId}")
     public ResponseEntity<?>deleteUser(
-            @Parameter(name = "",required = true)
-            @PathVariable  String id
+            @Parameter(name = "userId",required = true)
+            @PathVariable("userId")  String userid
     ){
         try {
-            ObjectId userId=new ObjectId(id);
+            ObjectId userId=new ObjectId(userid);
 
             UserEntity user =userService.findUserById(userId);
 
@@ -153,8 +153,8 @@ if(!isDeleted)
     @Operation(summary = "To disable the account")
     @GetMapping("{userId}/disable")
     public ResponseEntity<?>disableUser(
-            @Parameter(name = "",required = true)
-            @PathVariable String id
+            @Parameter(example = "68a41571cefaeeba36fc4494",required = true)
+            @PathVariable("userId") String id
     ){
         try {
             ObjectId userId=new ObjectId(id);
@@ -178,8 +178,8 @@ if(!isDeleted)
     @Operation(summary = "To enable the account")
     @GetMapping("{userId}/enable")
     public ResponseEntity<?>enableUser(
-            @Parameter(name = "",required = true)
-            @PathVariable String id
+            @Parameter(example = "68a41571cefaeeba36fc4494",required = true)
+            @PathVariable("userId") String id
     ){
         try {
             ObjectId userId=new ObjectId(id);

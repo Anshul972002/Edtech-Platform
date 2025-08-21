@@ -165,9 +165,13 @@ commentRepository.save(comment);
     }
 
     public void anonymizeUserId(ObjectId id) {
-        CommentEntity comment=commentRepository.findByUserId(id);
-        comment.setIsDeleted(true);
-        commentRepository.save(comment);
+        List<CommentEntity> comments=commentRepository.findByUserId(id);
+        comments.forEach(comment->{
+            comment.setIsDeleted(true);
+            comment.setUserId(null);
+        });
+
+        commentRepository.saveAll(comments);
 //        userId
 
     }
