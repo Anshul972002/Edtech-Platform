@@ -3,6 +3,7 @@ package com.example.edtech.controller;
 import com.example.edtech.config.UserPrincipal;
 import com.example.edtech.dto.Coursedto;
 import com.example.edtech.dto.LectureReplydto;
+import com.example.edtech.dto.UserReplydto;
 import com.example.edtech.dto.Userdto;
 import com.example.edtech.entity.CourseEntity;
 import com.example.edtech.entity.UserEntity;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -64,7 +66,7 @@ private final FileUploadService fileUploadService;
     }
 
     @Operation(summary = "To update the profile")
-    @PostMapping("/profile")
+    @PostMapping(value = "/profile",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateUserProfie(  @RequestParam(value = "name",required = false) String name,
                                                       @RequestParam(value = "dob",required = false) String dob,
                                                       @RequestParam(value = "address",required = false) String address,
@@ -76,7 +78,7 @@ if(name==null && dob==null && address==null && image==null)
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Empty values");
 
         // Create Userdto object manually
-        UserEntity user = userService.findUserById(new ObjectId(userService.getId()));
+         UserEntity user = userService.findUserById(new ObjectId(userService.getId()));
 
         if (name != null && !name.isEmpty() && !user.getName().equals(name)) {
             user.setName(name);
@@ -98,8 +100,9 @@ if(name==null && dob==null && address==null && image==null)
             // user.setImagePath(fileName); // optional field
         }
 userRepository.save(user);
-        // return updated user as a response
-        return ResponseEntity.ok(user);
+        UserReplydto userReplydto = UserReplydto.fromEntity(user);
+        return ResponseEntity.ok(userReplydto);
+
     }
 
 //    TO get the enrolled courses
