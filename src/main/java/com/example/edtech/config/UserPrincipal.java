@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Collections;
 
 //@AllArgsConstructor
+
 @NoArgsConstructor
 public class UserPrincipal implements UserDetails {
 
