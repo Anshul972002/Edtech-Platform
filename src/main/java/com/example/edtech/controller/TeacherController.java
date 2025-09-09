@@ -107,7 +107,7 @@ private final FileUploadService fileUploadService;
     @PostMapping("/courses/{id}/publish")
     public ResponseEntity<?>publishTheCourse( @Parameter(
             description = "ID of the course to be published",
-            example = "68a54f0171e5d5ef4b4fc18c"
+            example = "68bedcd37e2b4d6a85a43272"
     ) @PathVariable String id) throws AccessDeniedException {
         try {
             ObjectId objectId=new ObjectId(id);
@@ -118,7 +118,8 @@ private final FileUploadService fileUploadService;
                 course.setPublished(true);
                 course.setUpdatedAt(LocalDateTime.now());
                 CourseEntity save = courseRepository.save(course);
-                return ResponseEntity.ok(save);
+
+                return ResponseEntity.ok(CourseReplydto.fromEntity(save));
             }
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("message","You are not valid user")) ;
         }
@@ -130,7 +131,7 @@ private final FileUploadService fileUploadService;
     @PutMapping(value = "/courses/{id}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateCourse( @Parameter(
             description = "ID of the course to edit",
-            example = "68a54f0171e5d5ef4b4fc18c"
+            example = "68bedcd37e2b4d6a85a43272"
     )@PathVariable String id, @ModelAttribute Coursedto dto,@RequestParam(value = "file", required = false) MultipartFile image) throws IOException {
         Optional<CourseEntity> optionalCourse = courseRepository.findById(new ObjectId(id));
         if (optionalCourse.isEmpty()) {
@@ -165,7 +166,7 @@ if (image!=null && !image.isEmpty()){
     @DeleteMapping("/courses/{id}")
     public ResponseEntity<Map<String, Object>> deleteCourse( @Parameter(
             description = "ID of the course to be deleted",
-            example = "68a562fa90c529015c59de6c"
+            example = "68bede2a7e2b4d6a85a43273"
     )@PathVariable String id) {
         try {
             ObjectId courseId = new ObjectId(id);
@@ -200,7 +201,7 @@ if (image!=null && !image.isEmpty()){
     public ResponseEntity<?>addLectureToCourse(
           @Valid @ModelAttribute Lecturedto lecture,
           @RequestParam(value = "video",required = false) MultipartFile video,
-          @Parameter(example = "68a54f0171e5d5ef4b4fc18c",description = "Id of the course to add the lecture")
+          @Parameter(example = "68bedcd37e2b4d6a85a43272",description = "Id of the course to add the lecture")
           @PathVariable String id
 
   ){
@@ -250,7 +251,7 @@ catch (IllegalArgumentException e) {
     @Operation(summary = "To get all the lecture of a course")
     @GetMapping("/courses/{id}/lecture")
     public ResponseEntity<?>getAllLectureOfCourse(
-            @Parameter(example = "68a54f0171e5d5ef4b4fc18c",description = "Id of the course ")
+            @Parameter(example = "68bedcd37e2b4d6a85a43272",description = "Id of the course ")
             @PathVariable String id){
         ObjectId  courseId=new ObjectId(id);
         CourseEntity courseByID = courseService.getCourseByID(courseId);

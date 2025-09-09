@@ -56,7 +56,7 @@ public class CourseController {
 @Operation(summary = "To add a comment")
     @PostMapping("/{courseId}/comments")
     public ResponseEntity<Commentdto>addComment(
-            @Parameter(example = "68a54f0171e5d5ef4b4fc18c")
+            @Parameter(example = "68bedcd37e2b4d6a85a43272")
             @PathVariable String courseId,
             @RequestBody CreateCommentRequest request,
             @AuthenticationPrincipal UserPrincipal user
@@ -66,13 +66,12 @@ public class CourseController {
     ObjectId userId=new ObjectId(user.getId());
     Commentdto commentdto = commentService.addComment(courseId1, userId, request.getContent());
     return ResponseEntity.ok(commentdto);
-
 }
 
     @Operation(summary = "To add reply to the comment")
     @PostMapping("/{courseId}/comments/{parentCommentId}/reply")
     public ResponseEntity<Replydto>addReply(
-            @Parameter(example = "68a54f0171e5d5ef4b4fc18c")
+            @Parameter(example = "68bedcd37e2b4d6a85a43272")
             @PathVariable String courseId,
           @Parameter(example = "68a61e3885849a3ff2a7d9d3")
          @PathVariable String parentCommentId,
@@ -90,7 +89,7 @@ public class CourseController {
     @Operation(summary = "To get all the comments with reply")
     @GetMapping("/{courseId}/comments/all")
     public ResponseEntity<List<CommentTreeDto>> getComments(
-            @Parameter(example = "68a54f0171e5d5ef4b4fc18c")
+            @Parameter(example = "68bedcd37e2b4d6a85a43272")
             @PathVariable String courseId) {
     try {
         ObjectId courseid =new ObjectId(courseId);
@@ -120,7 +119,7 @@ public class CourseController {
     @Operation(summary = "To get reply of the particular comment")
     @GetMapping("/{courseId}/comments/{parentCommentId}/reply")
     public ResponseEntity<List<Commentdto>> getReply(
-            @Parameter(example = "68a54f0171e5d5ef4b4fc18c")
+            @Parameter(example = "68bedcd37e2b4d6a85a43272")
             @PathVariable String courseId,
           @Parameter(example = "68a61e3885849a3ff2a7d9d3")
          @PathVariable String parentCommentId,
@@ -147,7 +146,7 @@ public class CourseController {
 @Operation(summary = "To get the progress of the course")
     @GetMapping("/{courseId}/progress")
     public ResponseEntity<?> getProgress(
-        @Parameter(example = "68a54f0171e5d5ef4b4fc18c")
+        @Parameter(example = "68bedcd37e2b4d6a85a43272")
             @PathVariable String courseId) {
     ObjectId courseId1=new ObjectId(courseId);
         CourseEntity courseByID = courseService.getCourseByID(courseId1);

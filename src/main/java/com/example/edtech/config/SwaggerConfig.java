@@ -16,6 +16,7 @@ import org.springframework.context.annotation.Configuration;
                 description = "This is the API documentation for my edtech platform."
         ),
         servers = {
+//                @Server(url = "https://localhost:8081", description = "Local Server")
                 @Server(url = "https://edtech-platform-production.up.railway.app/", description = "Local Server")
         }
 )
