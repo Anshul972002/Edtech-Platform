@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-app
+  labels:
+    app: spring-app
+    version: "1.0.0"
+    tier: backend
+spec:
+  replicas: 1  # Start with minimum viable replicas
+  selector:
+    matchLabels:
+      app: spring-app
+  template:
+    metadata:
+      labels:
+        app: spring-app
+        version: "1.0.0"
+    spec:
+      containers:
+        - name: php-apache
+          image: registry.k8s.io/hpa-example
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8081
+              name: http
+              protocol: TCP
+            - containerPort: 9090
+              name: actuator
+              protocol: TCP
+#  “My app inside this container is using port 8081.”
+          # CRITICAL: Accurate resource requests for HPA calculation
+          resources:
+            requests:
+              cpu: 200m      # Based on actual load testing
+              memory: 512Mi  # Measured during normal operation
+            limits:
+              cpu: 500m     # Allow burst capacity
+              memory: 1Gi    # Prevent OOM kills
+
+#           Essential health checks for scaling decisions
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: actuator
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: actuator
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+
+          # JVM optimizations for container environment
+          env:
+            - name: JAVA_OPTS
+              value: >-
+                -XX:+UseContainerSupport
+                -XX:MaxRAMPercentage=70.0
+                -XX:+UseG1GC
+                -XX:G1HeapRegionSize=16m
+                -XX:+UseStringDeduplication
+                -Djava.security.egd=file:/dev/./urandom
+
+          # Graceful shutdown for clean scaling
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/bash", "-c", "sleep 15"]
+
+      # Ensure pods spread across nodes for better scaling
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values: ["spring-app"]
+                topologyKey: kubernetes.io/hostname
+
+      terminationGracePeriodSeconds: 30
+
+---
+# 2. MULTI-METRIC HPA WITH ADVANCED BEHAVIOR
+# This is what separates junior from senior engineers
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: spring-app-hpa
+  labels:
+    app: spring-app
+    component: autoscaler
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: spring-app
+
+  # Intelligent replica management
+  minReplicas: 1   # Never go below 3 for high availability
+  maxReplicas: 20   # Cost control - adjust based on budget
+
+  # Multiple metrics for comprehensive scaling decisions
+  metrics:
+    # Primary metric: CPU utilization
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50  # Conservative to maintain headroom
+
+    # Secondary metric: Memory utilization
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 50  # Memory pressure indicator
+
+    # Custom metric: Request rate (requires metrics server)
+    - type: Pods
+      pods:
+        metric:
+          name: http_requests_per_second
+        target:
+          type: AverageValue
+          averageValue: "100"  # Scale when > 100 RPS per pod

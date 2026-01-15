@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: php-apache
+spec:
+  selector:
+    matchLabels:
+      app: php-apache
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: php-apache
+    spec:
+      containers:
+        - name: php-apache
+          image: registry.k8s.io/hpa-example
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 200m
+            limits:
+              cpu: 500m
+---
+# 2. MULTI-METRIC HPA WITH ADVANCED BEHAVIOR
+# This is what separates junior from senior engineers
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: hpa-demo
+  labels:
+    app: hpa-demo-app
+    component: autoscaler
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: php-apache
+
+  # Intelligent replica management
+  minReplicas: 1   # Never go below 3 for high availability
+  maxReplicas: 20   # Cost control - adjust based on budget
+
+  # Multiple metrics for comprehensive scaling decisions
+  metrics:
+    # Primary metric: CPU utilization
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50  # Conservative to maintain headroom
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: php-apache
+spec:
+  selector:
+    app: php-apache
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80

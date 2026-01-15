@@ -1,6 +1,4 @@
 package com.example.edtech.controller;
-
-
 import com.cloudinary.Cloudinary;
 import com.example.edtech.config.UserPrincipal;
 import com.example.edtech.dto.CourseReplydto;
@@ -128,12 +126,9 @@ public class HomeController {
             throw new IOException("Imaged not saved to the server");
 
         }
-
         }
 
-
-
-    @Operation(summary = "Login a user and get JWT")
+        @Operation(summary = "Login a user and get JWT")
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> loginUser(@Valid @RequestBody LoginUser user) {
         try {
@@ -227,11 +222,6 @@ UserPrincipal userPrincipal=new UserPrincipal(userId,username,null,role,authorit
     }
 
     }
-
-
-
-
-
 
 }
 
